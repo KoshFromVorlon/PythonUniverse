@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a0edc7ac-0327-4700-92ac-0b1c66c2faee" name="Changes" comment="and there was light">
-      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice.py" afterDir="false" />
+    <list default="true" id="a0edc7ac-0327-4700-92ac-0b1c66c2faee" name="Changes" comment="simple cubic lattice commit">
+      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice3.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice4.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice5.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice6.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice7.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -51,6 +55,12 @@
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python.simple_cubic_lattice.executor": "Run",
+    "Python.simple_cubic_lattice2.executor": "Run",
+    "Python.simple_cubic_lattice3.executor": "Run",
+    "Python.simple_cubic_lattice4.executor": "Run",
+    "Python.simple_cubic_lattice5.executor": "Run",
+    "Python.simple_cubic_lattice6.executor": "Run",
+    "Python.simple_cubic_lattice7.executor": "Run",
     "Python.word.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -59,8 +69,8 @@
     "ignore.virus.scanning.warn.message": "true"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.simple_cubic_lattice2">
-    <configuration name="simple_cubic_lattice" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.simple_cubic_lattice7">
+    <configuration name="simple_cubic_lattice3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -73,7 +83,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice3.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -82,7 +92,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="simple_cubic_lattice2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="simple_cubic_lattice4" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -95,7 +105,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice2.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice4.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -104,7 +114,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="word" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="simple_cubic_lattice5" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -117,7 +127,51 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/word.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice5.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="simple_cubic_lattice6" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PythonUniverse" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice6.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="simple_cubic_lattice7" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PythonUniverse" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice7.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -128,9 +182,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.simple_cubic_lattice2" />
-        <item itemvalue="Python.simple_cubic_lattice" />
-        <item itemvalue="Python.word" />
+        <item itemvalue="Python.simple_cubic_lattice7" />
+        <item itemvalue="Python.simple_cubic_lattice6" />
+        <item itemvalue="Python.simple_cubic_lattice5" />
+        <item itemvalue="Python.simple_cubic_lattice4" />
+        <item itemvalue="Python.simple_cubic_lattice3" />
       </list>
     </recent_temporary>
   </component>
@@ -157,11 +213,20 @@
       <option name="project" value="LOCAL" />
       <updated>1753215688521</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="simple cubic lattice commit">
+      <option name="closed" value="true" />
+      <created>1753216545491</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1753216545491</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="and there was light" />
-    <option name="LAST_COMMIT_MESSAGE" value="and there was light" />
+    <MESSAGE value="simple cubic lattice commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="simple cubic lattice commit" />
   </component>
 </project>
