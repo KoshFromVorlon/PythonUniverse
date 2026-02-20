@@ -4,12 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a0edc7ac-0327-4700-92ac-0b1c66c2faee" name="Changes" comment="simple cubic lattice commit">
-      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice3.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice4.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice5.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice6.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simple_cubic_lattice7.py" afterDir="false" />
+    <list default="true" id="a0edc7ac-0327-4700-92ac-0b1c66c2faee" name="Changes" comment="simple cubic lattice 3-7 commit">
+      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/DigitalUniverse.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/digital_phys.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dragons_curve.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/emergent_gravity.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/emergent_gravity_3d.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/emergent_gravity_3d_improve.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kochs_snowflake.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/life.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pantagruel.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rule110.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tree.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/universe.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/PythonUniverse.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PythonUniverse.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -27,18 +38,22 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "TonkoshkuraMisha"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;TonkoshkuraMisha&quot;
   }
-}]]></component>
+}</component>
   <component name="GithubPullRequestsUISettings"><![CDATA[{
   "selectedUrlAndAccountId": {
     "url": "https://github.com/TonkoshkuraMisha/PythonUniverse.git",
-    "accountId": "15b7e75d-c1c1-44ac-bd5f-82515688e530"
+    "accountId": "73faf473-ec9a-4b41-a53e-5521f87ee0f9"
   }
 }]]></component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1
 }</component>
@@ -54,6 +69,14 @@
   "keyToString": {
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.Kochs_snowflake.executor": "Run",
+    "Python.dragons_curve.executor": "Run",
+    "Python.emergent_gravity.executor": "Run",
+    "Python.emergent_gravity_3d.executor": "Run",
+    "Python.emergent_gravity_3d_improve.executor": "Run",
+    "Python.life.executor": "Run",
+    "Python.pantagruel.executor": "Run",
+    "Python.rule110.executor": "Run",
     "Python.simple_cubic_lattice.executor": "Run",
     "Python.simple_cubic_lattice2.executor": "Run",
     "Python.simple_cubic_lattice3.executor": "Run",
@@ -61,16 +84,26 @@
     "Python.simple_cubic_lattice5.executor": "Run",
     "Python.simple_cubic_lattice6.executor": "Run",
     "Python.simple_cubic_lattice7.executor": "Run",
+    "Python.tree.executor": "Run",
+    "Python.universe.executor": "Run",
     "Python.word.executor": "Run",
+    "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true"
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/tonko/PycharmProjects/DigitalUniverse",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.simple_cubic_lattice7">
-    <configuration name="simple_cubic_lattice3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\tonko\PycharmProjects\DigitalUniverse" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.pantagruel">
+    <configuration name="dragons_curve" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -80,10 +113,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice3.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dragons_curve.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -92,7 +126,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="simple_cubic_lattice4" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="emergent_gravity" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -102,10 +136,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice4.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emergent_gravity.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -114,7 +149,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="simple_cubic_lattice5" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="emergent_gravity_3d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -124,10 +159,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice5.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emergent_gravity_3d.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -136,7 +172,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="simple_cubic_lattice6" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="emergent_gravity_3d_improve" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -146,10 +182,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice6.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emergent_gravity_3d_improve.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -158,7 +195,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="simple_cubic_lattice7" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="pantagruel" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -168,10 +205,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simple_cubic_lattice7.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pantagruel.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -182,18 +220,18 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.simple_cubic_lattice7" />
-        <item itemvalue="Python.simple_cubic_lattice6" />
-        <item itemvalue="Python.simple_cubic_lattice5" />
-        <item itemvalue="Python.simple_cubic_lattice4" />
-        <item itemvalue="Python.simple_cubic_lattice3" />
+        <item itemvalue="Python.pantagruel" />
+        <item itemvalue="Python.emergent_gravity_3d_improve" />
+        <item itemvalue="Python.emergent_gravity_3d" />
+        <item itemvalue="Python.emergent_gravity" />
+        <item itemvalue="Python.dragons_curve" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-4c141bd692a7-e2d783800521-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.26927.90" />
+        <option value="bundled-python-sdk-4762d8aabb82-6d6dccd035ac-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.30387.173" />
       </set>
     </attachedChunks>
   </component>
@@ -221,12 +259,21 @@
       <option name="project" value="LOCAL" />
       <updated>1753216545491</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="simple cubic lattice 3-7 commit">
+      <option name="closed" value="true" />
+      <created>1753218448610</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1753218448610</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="and there was light" />
     <MESSAGE value="simple cubic lattice commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="simple cubic lattice commit" />
+    <MESSAGE value="simple cubic lattice 3-7 commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="simple cubic lattice 3-7 commit" />
   </component>
 </project>
