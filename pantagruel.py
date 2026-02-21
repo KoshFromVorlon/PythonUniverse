@@ -6,7 +6,7 @@ import math
 # ==========================================
 WIDTH, HEIGHT = 1920, 1080
 BG_COLOR = (8, 10, 15)  # Глубокий космос
-GRID_COLOR = (0, 255, 180)  # Неоновая сетка (сделал чуть более "квантовой")
+GRID_COLOR = (0, 255, 180)  # Неоновая сетка
 SURFACE_COLOR = (4, 6, 10, 160)
 MASS_COLOR = (255, 30, 50)  # Цвет Черной дыры
 
@@ -20,7 +20,7 @@ MAX_GRAVITY = 3000000
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("3D Гиперграф: Вращающаяся Черная Дыра (Керровская метрика)")
+pygame.display.set_caption("3D Гиперграф: Вращающаяся Черная Дыра (Плавная механика)")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 36, bold=True)
 
@@ -104,9 +104,10 @@ while running:
                 last_mouse_pos = event.pos
 
     if not is_paused and not is_dragging:
-        camera_angle += 0.001
+        # ЗАМЕДЛЕНИЕ КАМЕРЫ (было 0.001, стало 0.0003)
+        camera_angle += 0.0003
 
-        # ==========================================
+    # ==========================================
     # ФИЗИКА: СОХРАНЕНИЕ МОМЕНТА ИМПУЛЬСА
     # ==========================================
     if not is_paused:
@@ -120,14 +121,15 @@ while running:
             for j in range(ROWS):
                 p = grid[i][j]
 
-                # 1. СИЛА ЗАКРУЧИВАНИЯ (Момент импульса)
-                # Чем ближе к центру (меньше p[1]) и чем больше масса, тем быстрее вращение
-                spin_speed = (current_gravity * 0.000015) / (p[1] + 20)
-                p[0] += spin_speed  # Изменяем угол! Пространство закручивается.
+                # 1. ЗАМЕДЛЕННОЕ И СГЛАЖЕННОЕ ЗАКРУЧИВАНИЕ
+                # Увеличил делитель (+80 вместо +20), чтобы соседние узлы вращались
+                # более синхронно. Это убирает угловатость и "рваные" полигоны.
+                spin_speed = (current_gravity * 0.000003) / (p[1] + 80)
+                p[0] += spin_speed
 
                 if not p[5]:
-                    # 2. СИЛА ПРИТЯЖЕНИЯ (Радиальное падение)
-                    pull = (current_gravity * 0.02) / (p[1] * p[1] + 100)
+                    # 2. БОЛЕЕ ПЛАВНОЕ ПРИТЯЖЕНИЕ
+                    pull = (current_gravity * 0.01) / (p[1] * p[1] + 150)
                     p[1] -= pull
 
                     if p[1] <= event_horizon:
@@ -135,16 +137,14 @@ while running:
                         p[5] = True
                         nodes_captured += 1
                 else:
-                    # Если узел съеден, он остается лежать на Горизонте Событий
-                    # Но продолжает бешено вращаться, создавая Аккреционный Диск!
                     p[1] = event_horizon
 
-                    # Переводим полярные координаты обратно в декартовы (X, Y)
+                # Возвращаем координаты на место (отступы исправлены)
                 p[2] = CX + math.cos(p[0]) * p[1]
                 p[3] = CY + math.sin(p[0]) * p[1]
 
-                # Формируем глубину воронки (Z)
-                p[4] = - (current_gravity / (p[1] + 10)) * Z_SCALE
+                # Формируем глубину воронки (Z) (чуть расширил дно, чтобы сгладить пик)
+                p[4] = - (current_gravity / (p[1] + 15)) * Z_SCALE
 
     # ==========================================
     # РЕНДЕРИНГ
@@ -170,9 +170,12 @@ while running:
                 'z': avg_z
             })
 
-    horizon_z = - (current_gravity / (event_horizon + 10)) * Z_SCALE
+    horizon_z = - (current_gravity / (event_horizon + 15)) * Z_SCALE
     bx, by, bz, factor = project_3d_to_2d(CX, CY, horizon_z, camera_angle, camera_tilt)
-    screen_radius = max(2, int(event_horizon * factor))
+
+    # ХИТРОСТЬ: Делаем черную дыру на пару пикселей шире горизонта событий,
+    # чтобы она визуально перекрывала собой все "острые" углы смятой сетки.
+    screen_radius = max(2, int((event_horizon + 5) * factor))
 
     polygons.append({
         'type': 'singularity',

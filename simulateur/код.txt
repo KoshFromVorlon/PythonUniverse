@@ -1,0 +1,2429 @@
+
+============================================================
+ФАЙЛ: a_star.py
+============================================================
+
+#!/bin/python
+
+from monde import *
+
+def square(a):
+
+	return a * a
+
+class A_star_pathfinder_item (object):
+
+	def __init__ (self, father, x, y, already_moved, delay):
+
+		self.father = father # indice du pere dans la liste already_seen.
+		self.x = x
+		self.y = y
+		self.amove = already_moved
+		self.delay = delay
+
+	def copy(self):
+
+		return  A_star_pathfinder_item(self.father, self.x, self.y, self.amove, self.delay)
+
+        def get_distance (self, end):
+
+            return self.amove + max(abs(self.x - end.x), abs(self.y - end.y))
+
+	def get_bird_distance(self, end):
+
+		return max(abs(self.x - end.x), abs(self.y - end.y)) + (end.delay - self.delay + end.frequency) % end.frequency
+
+	def get_eucl_distance(self, end):
+
+		return square(self.x - end.x) + square(self.y - end.y)
+
+def chosing_next_a_star(list, end):
+
+	if list == []:
+
+		raise Exception("No ways found between those two points.")
+		
+
+	i = 0
+
+	for it in range(len(list)):
+
+		d1 = list[it].get_distance(end)
+		d2 = list[i].get_distance(end)
+
+		if d1 < d2: # Je n ai pas trouve plus joli...
+
+			i = it
+
+		if d1 == d2 and list[it].get_eucl_distance(end) < list[i].get_eucl_distance(end):
+
+			i = it # pour des raisons esthetiques (et pour
+			       # que le bricolage soit ensuite plus
+			       # simple), le programme va preferer une
+			       # ligne *relativement* droite.
+
+	return i
+
+
+def nb_neighbours_a_star(x, y, father, already_seen, map, frequency, maxx, maxy):
+
+	n = 0
+	
+	for dx in [-1, 0, 1]:
+      
+		for dy in [-1, 0, 1]:
+			
+			if dy != 0 or dx != 0:
+				
+				if is_in(x + dx, y + dy, maxx, maxy):
+
+					if map[x + dx][y + dy] != Etat.EMPTY:
+						
+						n = n + 1
+	
+	# ajouter ses parents dans son arbre de recherche, sauf son parent immediat.
+	current = already_seen[father].father
+
+	if current == father: # Un petit cas particulier pour l'origine...
+
+		return n
+
+	while True:
+
+		if abs(already_seen[current].x - x) <= 1 and abs(already_seen[current].y - y) <= 1:
+
+			n = n + 1
+
+		if current == already_seen[current].father:
+
+			break # Je n ai pas trouve mieux comme equivalent de la boucle do...while.
+
+		current = already_seen[current].father
+
+	return n # on doit pouvoir optimiser en revoyant un booleen
+		 # vrai s il y a des voisins, mais je trouve ca moins
+		 # beau...
+
+def not_in_list_a_star(list, x, y, d):
+
+	for obj in list:
+
+		if obj.x == x and obj.y == y and obj.delay == d:
+
+			return False
+	return True
+
+def search_remplace_a_star(list, x, y, d, amove, father): # add an object in the list, but remplace if there is an instance less efficient of it. Return the indice.
+
+	i = 0
+
+	for obj in list:
+
+		if obj.x == x and obj.y == y and obj.delay == d:
+
+			if obj.amove > amove:
+
+				obj.amove = amove
+				obj.father = father
+
+			return i
+		i = i + 1
+
+	# sinon on l'ajoute a la fin.
+	ind = len(list)
+	list.append(A_star_pathfinder_item(father, x, y, amove, d))
+	return ind
+
+def add_a_star(list, x, y, d, amove, father):
+
+	ind = len(list)
+	list.append(A_star_pathfinder_item(father, x, y, amove, d))
+	return ind
+
+def get_middle_wire(start, first, end, component):
+
+	current_point = Point(first.x, first.y)
+	previous_point = Point(start.x, start.y)
+	middle_point = Point(first.x, first.y)
+	previous_middle_point = Point(start.x, start.y)
+	d = 0
+
+	while current_point.x != end.x or current_point.y != end.y:
+
+		tmp = current_point
+		current_point = next_point(current_point, previous_point, component)
+		previous_point = tmp
+
+		if d % 2 == 1:
+
+			tmp = middle_point
+			middle_point = next_point(middle_point, previous_middle_point, component)
+			previous_middle_point = tmp
+
+		d = d + 1
+
+	
+	return previous_middle_point, middle_point, d + 1
+
+def next_point(current, previous, component):
+
+	for dx in [-1, 0, 1]:
+
+		for dy in [-1, 0, 1]:
+
+			if is_in(current.x + dx, current.y + dy, component.x, component.y) and (dx != 0 or dy != 0):
+
+				if component.map[current.x + dx][current.y + dy] == Etat.WIRE and (current.x + dx != previous.x or current.y + dy != previous.y):
+
+					return Point(current.x + dx, current.y + dy)
+
+	return Exception("No next point found.")
+
+
+class Data(object):
+
+	def __init__(self, start, component):
+
+		self.already_seen = [A_star_pathfinder_item(0, start.x, start.y, 0, 0)]
+		# En fait, on ne prendra pas en compte le retard.
+		# Je n'ai juste as envie de faire une nouvelle classe juste pour ca.
+		
+		self.a_star_list = []
+		for dx in [-1, 0, 1]:
+
+			for dy in [-1, 0, 1]:
+
+				if is_in(start.x + dx, start.y + dy, component.x, component.y):
+
+					if nb_neighbours_a_star(start.x + dx, start.y + dy, 0, self.already_seen, component.map, 1, component.x, component.y) == 0 and (dx != 0 or dy != 0):
+
+						self.a_star_list.append(A_star_pathfinder_item(0, start.x + dx, start.y + dy, 1, 0))
+
+		self.start = start
+		self.component = component
+
+def get_list_father(already_seen, ind):
+
+	list = [already_seen[ind]]
+
+	i = ind
+
+	while already_seen[i].father != i:
+
+		i = already_seen[i].father
+		list.append(already_seen[i])
+	return list
+
+
+def dynamic_a_star(end, datas):
+
+	end.delay = 0 # je sais, c'est moche, mais sinon, ca ne passera pas...
+
+	i = 0
+	for obj in datas.already_seen:
+
+		if obj.x == end.x and obj.y == end.y:
+			# si l'on est deja passe par ce point.
+			return (get_list_father(datas.already_seen, i), datas)
+		i = i + 1
+
+	# sinon, il va falloir calculer.
+	i = chosing_next_a_star(datas.a_star_list, end)
+
+	ind = 0
+
+	while datas.a_star_list[i].x != end.x or datas.a_star_list[i].y != end.y:
+
+		ind = len(datas.already_seen)
+		datas.already_seen.append(datas.a_star_list[i])
+
+		for dx in [-1, 0 , 1]:
+
+			for dy in [-1, 0, 1]:
+
+				if is_in(datas.a_star_list[i].x + dx, datas.a_star_list[i].y + dy, datas.component.x, datas.component.y):
+
+					if nb_neighbours_a_star(datas.a_star_list[i].x + dx, datas.a_star_list[i].y + dy, ind, datas.already_seen, datas.component.map, 1, datas.component.x, datas.component.y) == 0 and (dx != 0 or dy != 0):
+
+						search_remplace_a_star(datas.a_star_list, datas.a_star_list[i].x + dx, datas.a_star_list[i].y + dy, 0, datas.a_star_list[i].amove + 1, ind)
+
+		del datas.a_star_list[i]
+
+		i = chosing_next_a_star(datas.a_star_list, end)
+
+	return (get_list_father(datas.already_seen, ind), datas)
+
+
+
+============================================================
+ФАЙЛ: composants.py
+============================================================
+
+#!/usr/bin/python
+
+from monde import *
+from a_star import *
+
+class Connection (object):
+	
+	def __init__ (self, f, x, y):
+		
+		self.frequency = f
+		self.delay = 0
+		self.x = x
+		self.y = y
+
+	def set_delay(self, d):
+		
+		self.delay = d
+
+	def add_to_position(self, x, y):
+
+		self.x = self.x + x
+		self.y = self.y + y
+
+def create_from_map(la_map):
+
+   # ne recree pas les connections a
+   # partir de rien : elles sont bel
+   # et bien perdues.
+   # J'aurais prefere la creer dans Map, mais Component a besoin de Map : Map ne doit pas avoir besoin de Component. On n'est pas en C...
+   component = Component(la_map.x, la_map.y)
+
+   for i in range(la_map.x):
+
+         for j in range(la_map.y):
+   
+               component.map[i][j] = la_map.get_state(i, j)
+
+   component.pos = Point(la_map.pos.x, la_map.pos.y)
+
+   return component
+
+class Component (object):
+	
+	def __init__ (self, x, y):
+
+		self.pos = Point(0, 0)
+		# ajoutes pour des raisons de compatibilite avec le
+		# code de francois.
+
+		self.x = x
+		self.y = y
+
+		self.map = []
+		self.connections = []
+		
+		for i in range(x):
+			
+			self.map.append([])
+			
+			for j in range(y):
+				
+				self.map[i].append(Etat.EMPTY)
+
+	def set_wire (self, x, y):
+		
+		self.map[x][y] = Etat.WIRE
+	
+	def set_empty (self, x, y):
+		
+		self.map[x][y] = Etat.EMPTY
+	
+	def set_state (self, x, y, state):
+		
+		self.map[x][y] = state
+	
+	def add_connection (self, c):
+		
+		self.connections.append(c)
+	
+	def get_state(self, x, y):
+		
+		return self.map[x][y]
+	
+	def turn_to_map (self):
+		
+		map = Map(self.x, self.y)
+		
+		for x in range(self.x):
+			
+			for y in range(self.y):
+				
+				if self.map[x][y] != Etat.EMPTY:
+					map.set_wire(x, y)
+
+		# Les electrons doivent etres ajoutes a la fin !
+
+		for x in range(self.x):
+
+			for y in range(self.y):
+
+				if self.map[x][y] == Etat.HEAD:
+					map.set_elec(x, y)
+				elif self.map[x][y] == Etat.TAIL:
+					map.set_tail(x, y)
+
+		map.pos = Point(self.pos.x, self.pos.y)
+
+		return map
+
+	def get_size(self):
+
+		return (self.x, self.y)
+
+	def set_orig(self, x, y):
+
+		self.pos.x = x
+		self.pos.y = y
+
+	def get_orig(self):
+
+		return (self.pos.x, self.pos.y)
+
+	def random(self):
+
+		for x in range(self.x):
+
+			for y in range(self.y):
+
+				self.set_state(i, j, random.choice(range(4)))
+
+	def resize(self, left, top, right, bottom):
+		# agrandie la carte de left vers la gauche, right vers la droite, etc.
+		
+		if self.x + left + right < 0 or self.y + top + bottom < 0:
+			raise Exception("cannot resize the Component to a negative size.")
+
+		if self.x + left + right == 0 or self.y + top + bottom == 0:
+			# La carte devient vide.
+			self.x = 0
+			self.y = 0
+			self.map = [[]]
+		else:
+			# Les cas ou il se passe quelque chose.
+			# On agrandi d'abord, on enleve ensuite.
+			if right > 0:
+				
+				for x in range(right):
+
+					self.map.append([])
+					for y in range(self.y):
+
+						self.map[self.x + x].append(Etat.EMPTY)
+				self.x = self.x + right
+
+			if left > 0:
+				
+				for x in range(left):
+
+					self.map.insert(0, [])
+					for y in range(self.y):
+
+						self.map[0].append(Etat.EMPTY)
+				self.x = self.x + left
+				self.pos.x = self.pos.x - left
+				
+			if bottom > 0:
+				
+				for x in range(self.x):
+
+					for y in range(bottom):
+
+						self.map[x].append(Etat.EMPTY)
+				self.y = self.y + bottom
+
+			if top > 0:
+				
+				for x in range(self.x):
+
+					for y in range(top):
+
+						self.map[x].insert(0, Etat.EMPTY)
+				self.y = self.y + top
+				self.pos.y = self.pos.y - top
+
+			if right < 0:
+
+				self.map = self.map[:(self.x + right)]
+				self.x = self.x + right
+
+			if left < 0:
+
+				self.map = self.map[(-left):]
+				self.x = self.x + left
+				self.pos.x = self.pos.x - left
+
+			if bottom < 0:
+
+				for x in range(self.x):
+
+					self.map[x] = self.map[x][:(self.y + bottom)]
+				self.y = self.y + bottom
+
+			if top < 0:
+
+				for x in range(self.x):
+
+					self.map[x] = self.map[x][(-top):]
+				self.y = self.y + top
+				self.pos.y = self.pos.y - top
+
+		# Ne garder des connexions que celles qui restent dans
+		# la carte, et actualiser leurs coordonnees.
+
+		new_con = []
+
+		for c in self.connections:
+
+			c.add_to_position(left, top)
+
+			if is_in(c.x, c.y, self.x, self.y):
+				
+				new_con.append(c)
+
+		self.connections = new_con
+	
+
+	def copy_component(self, p1, p2): # pour l'interface : c'est un copier.
+
+		if p1.x > p2.x:
+
+			tmp = p2.x
+			p2.x = p1.x
+			p1.x = tmp
+
+		if p1.y > p2.y:
+
+			tmp = p2.y
+			p2.y = p1.y
+			p1.y = tmp
+
+
+		c = Component(p2.x - p1.x, p2.y - p1.y)
+
+		for x in range(p2.x - p1.x):
+
+			for y in range(p2.y - p1.y):
+
+				c.set_state(x, y, self.map[p1.x + x][p1.y + y])
+		
+		for con in self.connections:
+
+			if is_in(con.x - p1.x, con.y - p1.y, c.x, c.y):
+
+				new_con = Connection(con.frequency, con.x - p1.x, con.y - p1.y)
+				new_con.set_delay(con.delay)
+				c.add_connections(new_con)
+
+		return c
+
+	def put_component (self, x, y, c): # pour l'interface : c'est un coller.
+		
+		for cx in range(c.x):
+			
+			for cy in range(c.y):
+				
+				self.set_state(x + cx, y + cy, c.map[cx][cy])
+
+		for con in c.connections:
+			
+			new_con = Connection(con.frequency, con.x + x, con.y + y)
+			new_con.set_delay(con.delay)
+			self.connections.append(new_con)
+	
+	def link_connections_a_star (self, i, j, search_remplace):
+		# La fonction ou tout se passe. i et j sont les
+		# indices des connections a connecter.
+
+		start = self.connections[i]
+		end = self.connections[j]
+		
+		#self.map[start.x][start.y] = Etat.HEAD #FIXME
+		#self.map[end.x][end.y] = Etat.HEAD
+		#self.turn_to_map().print_world() # pour voir ou on en est. # FIXME : temporaire.
+		
+		self.map[start.x][start.y] = Etat.EMPTY # On va le remplir ensuite,
+		self.map[end.x][end.y] = Etat.EMPTY     # mais c'est plus simple pour l'algorithme.
+
+		if start.frequency == end.frequency and i != j:
+
+			indicei = i
+			indicej = j
+
+			# L'algorithme se rapproche du A*, mais chaque case a
+			# un certains nombre d occurrences. (une pour chaque
+			# retard possible modulo la frequence.
+			
+			a_star_list = []
+			already_seen = [A_star_pathfinder_item(0, start.x, start.y, 0, start.delay)]
+			for x in [-1, 0 , 1]:
+				for y in [-1, 0, 1]:
+					if is_in(start.x + x, start.y + y, self.x, self.y):
+						if nb_neighbours_a_star(start.x + x, start.y + y, 0, already_seen, self.map, start.frequency, self.x, self.y) == 0 and (x != 0 or y != 0):
+							search_remplace(a_star_list, start.x + x, start.y + y, (start.delay + 1) % start.frequency, 1, 0)
+
+			i = chosing_next_a_star(a_star_list, end)
+
+			indice = 0
+
+			while a_star_list[i].get_bird_distance(end) >= 1:
+				
+				indice = search_remplace(already_seen, a_star_list[i].x, a_star_list[i].y, a_star_list[i].delay, a_star_list[i].amove, a_star_list[i].father)
+
+				for dx in [-1, 0, 1]:
+					
+					for dy in [-1, 0, 1]:
+					
+						if dx != 0 or dy != 0:
+
+							if is_in(a_star_list[i].x + dx, a_star_list[i].y + dy, self.x, self.y):
+
+								if nb_neighbours_a_star(a_star_list[i].x + dx, a_star_list[i].y + dy, indice, already_seen, self.map, start.frequency, self.x, self.y) == 0:
+									
+									if not_in_list_a_star(already_seen, a_star_list[i].x + dx, a_star_list[i].y + dy, (a_star_list[i].delay + 1) % start.frequency):
+										
+										search_remplace(a_star_list, a_star_list[i].x + dx, a_star_list[i].y + dy, (a_star_list[i].delay + 1) % start.frequency, already_seen[indice].amove + 1, indice)
+										#a_star_list.append(A_star_pathfinder_item(ind, a_star_list[i].x + dx, a_star_list[i].y + dy, already_seen[ind].amove + 1, (a_star_list[i].delay + 1) % start.frequency))
+								                # en effet, la distance dans wireworld en diagonale et celle en ligne droite est la meme : on n'augmente la distance parcourue que de 1.
+									else:
+										
+										search_remplace(already_seen, a_star_list[i].x + dx, a_star_list[i].y + dy, (a_star_list[i].delay + 1) % start.frequency, already_seen[indice].amove + 1, indice)
+										#already_seen.append(A_star_pathfinder_item(ind, a_star_list[i].x + dx, a_star_list[i].y + dy, already_seen[ind].amove + 1, (a_star_list[i].delay + 1) % start.frequency))
+										# si jamais on a deja trouve un chemin, mais qui est moins bon, on choisit le nouveau.
+										# On remarque que cela pourra changer l'accessibilite d'une case : il est possible que l'algorithme ne trouve pas de chemin, alors qu'il en existe.
+										# Mais si je ne fait pas ca, le temps de calcul augmente en fleche.
+				del a_star_list[i]
+
+				i = chosing_next_a_star(a_star_list, end)
+			
+			if indicei > indicej:
+				del self.connections[indicei]
+				del self.connections[indicej]
+			else:
+				del self.connections[indicej]
+				del self.connections[indicei]
+
+			#dessin du cable.
+
+			self.map[start.x][start.y] = Etat.WIRE
+			self.map[end.x][end.y] = Etat.WIRE
+
+			current = indice # la derniere case visitee
+			previous = current
+
+			while already_seen[current].father != current: # tant que l'on n'est pas retourne au debut...
+
+				self.map[already_seen[current].x][already_seen[current].y] = Etat.WIRE
+
+				previous = current
+				current = already_seen[current].father
+
+			return already_seen[previous] # On retourne la premiere case a parcourir pour aller vers la case de fin.
+
+		else:
+
+			raise Exception("Unacceptable wire.")
+
+
+	def link_connections_fonction(self, i, j, search_remplace): # search_remplace est une fonction : celle utilisee par l'algorithme.
+
+		# Il va falloir ruser : la fonction precedente est
+		# beaucoup trop lente si on lui demande de gerer les
+		# frequences.  Le cas ou la frequence est de 2 marche
+		# plus ou moins s'il y a de la place (beaucoup de
+		# place) et que les points a relier sont proches, on
+		# va l'utiliser.
+
+		start = self.connections[i]
+		end = self.connections[j]
+
+		if start.frequency != end.frequency:
+
+			return
+
+		ind = len(self.connections)
+
+		c1 = Connection(1, start.x, start.y)
+		c1.set_delay(start.delay)
+		self.add_connection(c1)
+		c2 = Connection(1, end.x, end.y)
+		c2.set_delay(start.delay)
+		self.add_connection(c2)
+
+		first_movement = self.link_connections_a_star(ind, ind + 1, search_remplace)
+
+		previous, point, d = get_middle_wire(start, first_movement, end, self)
+
+		while (d + start.delay) % start.frequency != end.delay:
+
+			b = False # b vaut True si la connection a reussi.
+
+			while not b:
+
+				ind = len(self.connections)
+
+				next = next_point(point, previous, self)
+				next2 = next_point(next, point, self)
+				next3 = next_point(next2, next, self) # on remarque que si le cable est trop court, cette fonction renvoit directement une erreur : ce n'est pas la peine de bricoler plus si l'on a pas de marge d'actions...
+
+				self.map[point.x][point.y] = Etat.EMPTY
+				self.map[next.x][next.y] = Etat.EMPTY
+				self.map[next2.x][next2.y] = Etat.EMPTY
+
+				con = Connection(2, previous.x, previous.y)
+				con.set_delay(0)
+				self.add_connection(con)
+
+				con = Connection(2, next3.x, next3.y)
+				con.set_delay(1) # ainsi, la fonction link_connection_a_star va ajouter (au moins) un de retard.
+				self.add_connection(con)
+
+				try:
+					self.link_connections_a_star(ind, ind + 1)
+					b = True
+				except:
+					self.map[point.x][point.y] = Etat.WIRE
+					self.map[next.x][next.y] = Etat.WIRE
+					self.map[next2.x][next2.y] = Etat.WIRE
+					self.map[next3.x][next3.y] = Etat.WIRE
+					self.map[previous.x][previous.y] = Etat.WIRE
+					# ces cables sont en effet
+					# enleves par la fonction
+					# link_connection_a_star
+					del self.connections[ind + 1]
+					del self.connections[ind]
+					tmp = Point(point.x, point.y)
+					point = next_point(point, previous, self)
+					previous = tmp
+					if next3.x == end.x and next3.y == end.y:
+						# On parcourt dans l'autre sens
+						point, previous, d = get_middle_wire(start, first_movement, end, self)
+					if next3.x == start.x and next3.y == start.y:
+						# La, on a tente de bricoler comme on pouvait partout, mais on a rien trouve.
+						raise Exception("No ways found between those two points.")
+
+			# attention, pour pouvoir executer la ligne
+			# suivante, il faut que le cable ait ete
+			# reconstruit localement.
+			previous, point, d = get_middle_wire(start, first_movement, end, self)
+
+			print (d + start.delay) % start.frequency
+
+
+		if i > j:
+			del self.connections[i]
+			del self.connections[j]
+		else:
+			del self.connections[j]
+			del self.connections[i]
+
+	def link_connections_quick(self, i, j):
+
+		self.link_connections_fonction(i, j, search_remplace_a_star)
+
+	def link_connections_low(self, i, j):
+
+		self.link_connections_fonction(i, j, add_a_star)
+
+
+
+
+============================================================
+ФАЙЛ: config.py
+============================================================
+
+# -*- coding: utf-8 -*-
+
+import pygtk
+pygtk.require('2.0')
+import gtk
+import glib
+import sys
+
+# constants
+class ui_const:
+   MODE_EDIT = 0
+   MODE_RUN = 1
+   TOOL_MOVE = 2
+   TOOL_PENCIL = 3
+   TOOL_ASTAR = 4
+   TOOL_ERASER = 5
+   TOOL_COPY = 6
+   TOOL_PASTE = 7
+   TOOL_RESIZE = 8
+   TOOL_PATH = 9
+
+class ev_const:
+   MOUSE_BUTTON_PRESS = 0
+   MOUSE_BUTTON_RELEASE = 1
+   MOUSE_MOTION = 2
+   MOUSE_ENTER = 3
+   MOUSE_LEAVE = 4
+
+class sim_const:
+   EMPTY = 0
+   WIRE = 1
+   HEAD = 2
+   TAIL = 3
+
+# configuration data (often default configuration)
+ui_config = {
+   'main_window_default_width' : 640,
+   'main_window_default_height' : 480,
+   'cell_array_map_show' : True,
+   'cell_array_resize_min_width' : 200,
+   'cell_array_resize_min_height' : 100,
+   'cell_array_default_zoom' : 5,
+   'cell_array_max_zoom' : 50,
+   'cell_array_grid_enabled' : True,
+   'cell_array_grid_min_zoom' : 4,
+   'cell_array_move_factor' : 0.5,
+   'cell_array_color_empty' : '#000',
+   'cell_array_color_wire' : '#A50',
+   'cell_array_color_head' : '#FFF',
+   'cell_array_color_tail' : '#00A',
+   'cell_array_color_grid' : '#AAA',
+   'cell_array_color_highlight' : '#F00',
+   'cell_array_color_background' : '#222',
+   'editor_action_preview_enabled' : True
+}
+
+# configuration functions
+ui_color = [
+   gtk.gdk.colormap_get_system ().alloc_color (ui_config['cell_array_color_empty']),
+   gtk.gdk.colormap_get_system ().alloc_color (ui_config['cell_array_color_wire']),
+   gtk.gdk.colormap_get_system ().alloc_color (ui_config['cell_array_color_head']),
+   gtk.gdk.colormap_get_system ().alloc_color (ui_config['cell_array_color_tail']),
+   gtk.gdk.colormap_get_system ().alloc_color (ui_config['cell_array_color_grid']),
+   gtk.gdk.colormap_get_system ().alloc_color (ui_config['cell_array_color_highlight']),
+   gtk.gdk.colormap_get_system ().alloc_color (ui_config['cell_array_color_background'])
+   ]
+
+def gtk_create_user_icons ():
+   icon_factory = gtk.IconFactory ()
+   pixmap = gtk.gdk.Pixmap (None, 1, 1, 24)
+   
+   # colors
+   pixbuf = gtk.gdk.Pixbuf (gtk.gdk.COLORSPACE_RGB, False, 8, 1, 1)
+   pixmap.draw_point (pixmap.new_gc (foreground = ui_color[0]), 0, 0)
+   icon_factory.add ('cell_array_color_empty', gtk.IconSet (pixbuf.get_from_drawable (pixmap, pixmap.get_colormap (), 0, 0, 0, 0, -1, -1)))
+   pixbuf = gtk.gdk.Pixbuf (gtk.gdk.COLORSPACE_RGB, False, 8, 1, 1)
+   pixmap.draw_point (pixmap.new_gc (foreground = ui_color[1]), 0, 0)
+   icon_factory.add ('cell_array_color_wire', gtk.IconSet (pixbuf.get_from_drawable (pixmap, pixmap.get_colormap (), 0, 0, 0, 0, -1, -1)))
+   pixbuf = gtk.gdk.Pixbuf (gtk.gdk.COLORSPACE_RGB, False, 8, 1, 1)
+   pixmap.draw_point (pixmap.new_gc (foreground = ui_color[2]), 0, 0)
+   icon_factory.add ('cell_array_color_head', gtk.IconSet (pixbuf.get_from_drawable (pixmap, pixmap.get_colormap (), 0, 0, 0, 0, -1, -1)))
+   pixbuf = gtk.gdk.Pixbuf (gtk.gdk.COLORSPACE_RGB, False, 8, 1, 1)
+   pixmap.draw_point (pixmap.new_gc (foreground = ui_color[3]), 0, 0)
+   icon_factory.add ('cell_array_color_tail', gtk.IconSet (pixbuf.get_from_drawable (pixmap, pixmap.get_colormap (), 0, 0, 0, 0, -1, -1)))
+   del pixbuf
+
+   try:
+      # edit tools
+      icon_factory.add ('cell_array_tool_move', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-tool-move.png')))
+      icon_factory.add ('cell_array_tool_pencil', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-tool-pencil.png')))
+      icon_factory.add ('cell_array_tool_astar', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-tool-astar.png')))
+      icon_factory.add ('cell_array_tool_eraser', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-tool-eraser.png')))
+      icon_factory.add ('cell_array_tool_copy', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-tool-copy.png')))
+      icon_factory.add ('cell_array_tool_paste', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-tool-paste.png')))
+      icon_factory.add ('cell_array_tool_resize', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-tool-resize.png')))
+      icon_factory.add ('cell_array_tool_path', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-tool-path.png')))
+
+      # other actions
+      icon_factory.add ('cell_array_action_center', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-action-center.png')))
+      icon_factory.add ('cell_array_action_crop', gtk.IconSet (gtk.gdk.pixbuf_new_from_file ('file/icon/stock-action-crop.png')))
+   except glib.GError as gerror:
+      dialog = gtk.MessageDialog (None, 0, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, gerror.message)
+      dialog.run ()
+      dialog.destroy ()
+      sys.exit (0)
+   # add these icons to default
+   icon_factory.add_default ()
+
+def config_init ():
+   gtk_create_user_icons ()
+
+
+
+============================================================
+ФАЙЛ: main.py
+============================================================
+
+#!/usr/bin/python -O
+# -*- coding: utf-8 -*-
+
+import ui_main_window
+import config
+
+config.config_init ()
+
+window = ui_main_window.Main_window ()
+window.main ()
+
+
+
+============================================================
+ФАЙЛ: monde.py
+============================================================
+
+#!/usr/bin/python
+
+class Etat (object):
+
+      EMPTY = 0
+      WIRE = 1
+      HEAD = 2
+      TAIL = 3
+
+def is_in(x, y, maxx, maxy):
+      return (x >= 0 and x < maxx and y >= 0 and y < maxy)
+
+def nb_neighbour(monde, cell, maxx, maxy):
+      nb = 0
+      for c in cell.neighbour:
+                  
+            if monde[c.x][c.y].e == Etat.HEAD:
+                  nb = nb + 1
+      return nb
+
+def is_in_list(p, l):
+      for a in l:
+            if a.x == p.x and a.y == p.y:
+                  return True
+      return False
+
+def erase_pairs(l):
+      new_l = []
+      for x in l:
+            if not is_in_list(x, new_l):
+                  new_l.append(x)
+      return new_l
+
+class Point (object):
+      
+      def __init__ (self, x, y):
+            self.x = x
+            self.y = y
+
+class Cell (object):
+
+      def __init__ (self, e, voisines):
+            self.e = e
+            self.neighbours = voisines # Les coordonees des voisines.
+
+def get_neighbour(monde, x, y, maxx, maxy):
+      neighbour = []
+      if monde[x][y].e == Etat.EMPTY:
+            return []
+
+      for i in [-1, 0, 1]:
+
+            for j in [-1, 0, 1]:
+                  
+                  if is_in(x + i, y + j, maxx, maxy) and not (i == 0 and j == 0):
+                        if monde[x + i][y + j].e != Etat.EMPTY:
+                              neighbour.append(Point(x + i, y + j))
+      return neighbour
+
+class Map (object):
+
+      def __init__ (self, x, y):
+
+            self.pos = Point(0, 0) # pour la compatibilite avec les modules de Francois.
+
+            self.x = x
+            self.y = y
+            self.monde = [[], []] # contient deux mondes. Switch a
+                                  # chaque tour. Cela permet d eviter
+                                  # de perdre du temps en allocation
+                                  # et recopie.
+            self.current_world = 0
+            self.electron = [] # tableau de coordonnees des
+                               # electrons. (en fait de toutes les
+                               # cases qui peuvent etre modifiee au
+                               # prochain tour)
+            for i in range(x):
+
+                  self.monde[0].append([])
+                  self.monde[1].append([])
+                  for j in range(y):
+
+                        self.monde[0][i].append(Cell(Etat.EMPTY, []))
+                        self.monde[1][i].append(Cell(Etat.EMPTY, []))
+
+      def iter_part(self, electron):
+
+            new_electron = []
+
+            for c in electron:
+                  
+                  e = self.monde[self.current_world][c.x][c.y].e
+                  if e == Etat.HEAD:
+                        self.monde[1 - self.current_world][c.x][c.y].e = Etat.TAIL
+                        new_electron.append(c) # Elle doit etre supprimee a l etape suivante : la case va bien etre modifiee.
+                  elif e == Etat.TAIL:
+                        self.monde[1 - self.current_world][c.x][c.y].e = Etat.WIRE
+                        new_electron.append(c) # C est un cable a cette etape, mais une queue d electron a la precedente : il faudra enlever la queue dans la suivante/precedente.
+                  elif e == Etat.WIRE:
+                        n = nb_neighbour(self.monde[self.current_world], self.monde[self.current_world][c.x][c.y], self.x, self.y)
+                        if n > 0 and n <= 2:
+                              self.monde[1 - self.current_world][c.x][c.y].e = Etat.HEAD
+                              new_electron.append(c)
+                              for neighb in self.monde[self.current_world][c.x][c.y].neighbour:
+                                    
+                                    new_electron.append(neighb)
+                        else:
+                              self.monde[1 - self.current_world][c.x][c.y].e = Etat.WIRE
+            return new_electron
+      
+
+      def iter_step(self):
+            self.electron = self.iter_part(self.electron)
+            self.current_world = 1 - self.current_world
+            self.electron = erase_pairs(self.electron) # On supprime les doublons, pour optimiser.
+
+      def print_world(self):
+            for y in range(self.y):
+
+                  for x in range(self.x):
+
+                        e = self.monde[self.current_world][x][y].e
+                        if e == Etat.EMPTY:
+                              print ' ',
+                        if e == Etat.WIRE:
+                              print '=',
+                        if e == Etat.HEAD:
+                              print 'O',
+                        if e == Etat.TAIL:
+                              print '*',
+                  print '\n',
+
+      def set_elec(self, x, y):
+            if x >= 0 and y >= 0 and x < self.x and y < self.y:
+                  if self.monde[self.current_world][x][y].e == Etat.EMPTY:
+                        self.set_wire(x, y)
+                  self.monde[self.current_world][x][y].e = Etat.HEAD
+                  self.electron.append(Point(x, y))
+                  for neighb in self.monde[self.current_world][x][y].neighbour:
+                          
+                          self.electron.append(neighb)
+
+      def get_size(self):
+
+            return (self.x, self.y)
+
+      def get_orig(self):
+
+            return (self.pos.x, self.pos.y)
+
+      def set_tail(self, x, y):
+            if x >= 0 and y >= 0 and x < self.x and y < self.y:
+                  self.set_wire(x, y)
+                  self.monde[self.current_world][x][y].e = Etat.TAIL
+                  self.monde[1 - self.current_world][x][y].e = Etat.TAIL
+		  self.electron.append(Point(x, y))
+
+      def set_wire(self, x, y):
+            if x >= 0 and y >= 0 and x < self.x and y < self.y:
+                  self.monde[self.current_world][x][y].e = Etat.WIRE
+                  self.monde[1 - self.current_world][x][y].e = Etat.WIRE
+                  for i in [-1, 0, 1]:
+
+                        for j in [-1, 0, 1]:
+                  
+                              if is_in(x + i, y + j, self.x, self.y):
+                                    self.monde[self.current_world][x + i][y + j].neighbour = get_neighbour(self.monde[self.current_world], x + i, y + j, self.x, self.y) # On reactualise les cellules sur le cote.
+                                    self.monde[1 - self.current_world][x + i][y + j].neighbour = get_neighbour(self.monde[1 - self.current_world], x + i, y + j, self.x, self.y)
+
+      def get_state(self, x, y):
+
+		return self.monde[self.current_world][x][y].e
+	
+      def resize(self, x, y): 	# resize the map (warning : all the cases out of the bounds are erased)
+				# Pas utilise en pratique.
+            if(x > self.x):
+                  for i in range(x - self.x):
+
+                        self.monde[self.current_world].append([])
+                        self.monde[1 - self.current_world].append([])
+                        for j in range(self.y):
+
+                              self.monde[self.current_world][self.x + i].append(Cell(Etat.EMPTY, []))
+                              self.monde[1 - self.current_world][self.x + i].append(Cell(Etat.EMPTY, []))
+                  self.x = x
+            else:
+                  self.x = x
+                  self.monde[self.current_world] = self.monde[self.current_world][:x]
+                  self.monde[1 - self.current_world] = self.monde[1 - self.current_world][:x]
+
+            if(y > self.y):
+                  for i in range(self.x):
+
+                        for j in range(y - self.y):
+
+                              self.monde[self.current_world][i].append(Cell(Etat.EMPTY, []))
+                              self.monde[1 - self.current_world][i].append(Cell(Etat.EMPTY, []))
+                  self.y = y
+            else:
+                  self.y = y
+                  for i in range(self.x):
+
+                        self.monde[self.current_world][i] = self.monde[self.current_world][i][:y]
+                        self.monde[1 - self.current_world][i] = self.monde[1 - self.current_world][i][:y]
+
+            new_electron = []
+            for e in self.electron:
+                  
+                  if is_in(e.x, e.y, self.x, self.y):
+                        new_electron.append(e)
+            self.electron = new_electron
+
+
+
+
+============================================================
+ФАЙЛ: ui_cell_array.py
+============================================================
+
+# -*- coding: utf-8 -*-
+
+#####################
+# cell array widget #
+#####################
+
+# includes
+import pygtk
+pygtk.require('2.0')
+import gtk
+import glib
+import math
+import Image
+
+from config import *
+import ui_editor
+
+import monde
+import composants
+
+# cell array
+class Cell_array (gtk.DrawingArea):
+   # resize event
+   def ca_ev_configure (self, widget, event):
+      x, y, w, h = self.get_allocation ()
+      
+      # recreate new pixmap
+      self.ca_pixmap = gtk.gdk.Pixmap (self.window, w, h)
+      
+      # colors graphic context
+      colormap = self.ca_pixmap.get_colormap ()
+      self.ca_gc = [
+         self.ca_pixmap.new_gc (foreground = ui_color[0]),
+         self.ca_pixmap.new_gc (foreground = ui_color[1]),
+         self.ca_pixmap.new_gc (foreground = ui_color[2]),
+         self.ca_pixmap.new_gc (foreground = ui_color[3])
+         ]
+      self.ca_grid_gc = self.ca_pixmap.new_gc (foreground = ui_color[4])
+      self.ca_highlight_gc = self.ca_pixmap.new_gc (foreground = ui_color[5])
+      self.ca_background_gc = self.ca_pixmap.new_gc (foreground = ui_color[6])
+      
+      # redraw
+      self.ca_draw ()
+      return True
+   
+   # event redraw part of screen
+   def ca_ev_exposure (self, widget, event):
+      x, y, w, h = event.area
+      self.window.draw_drawable (self.get_style().fg_gc[gtk.STATE_NORMAL], self.ca_pixmap, x, y, x, y, w, h)
+      return False
+   
+   # when one scrollbar is used
+   def ca_ev_scroll (self, range, data):
+      value = range.get_value ()
+      if value != 0:
+         screen_w, screen_h = self.ca_pixmap.get_size ()
+         if data:
+            self.ca_move (0, int (ui_config['cell_array_move_factor'] * screen_h * value / self.ca_zoom))
+         else:
+            self.ca_move (int (ui_config['cell_array_move_factor'] * screen_w * value / self.ca_zoom), 0)
+         range.set_value (0)
+         self.ca_draw ()
+   
+   # zoom changed
+   def ca_ev_zoom (self, range, data = None):
+      self.ca_zoom = int (math.sqrt (range.get_value ()))
+      self.ca_draw ()
+   
+   # mouse event (click, move, enter/leave widget)
+   def ca_ev_mouse (self, widget, event, code):
+      # we only use mouse left button
+      if (event.type != gtk.gdk.BUTTON_PRESS and event.type != gtk.gdk.BUTTON_RELEASE) or event.button == 1:
+         x, y = event.get_coords ()
+         screen_w, screen_h = self.ca_pixmap.get_size ()
+         
+         # cast to int
+         x = int (x)
+         y = int (y)
+
+         # converting screen coordinates to virtual coordinates (infinite plan)
+         vx = (x - (screen_w / 2)) / self.ca_zoom + self.ca_view_x
+         vy = (y - (screen_h / 2)) / self.ca_zoom + self.ca_view_y
+
+         self.ca_editor.do_event (code, (vx, vy))
+      return True
+      
+   # create widget
+   def __init__ (self):
+      # create gtkImage widget
+      gtk.DrawingArea.__init__ (self)
+      self.set_size_request (ui_config['cell_array_resize_min_width'], ui_config['cell_array_resize_min_height'])
+      self.add_events (gtk.gdk.BUTTON1_MOTION_MASK | gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK |
+         gtk.gdk.EXPOSURE_MASK | gtk.gdk.ENTER_NOTIFY_MASK | gtk.gdk.LEAVE_NOTIFY_MASK)
+      self.connect ('configure-event', self.ca_ev_configure)
+      self.connect ('expose-event', self.ca_ev_exposure)
+      self.connect ('button-press-event', self.ca_ev_mouse, ev_const.MOUSE_BUTTON_PRESS)
+      self.connect ('button-release-event', self.ca_ev_mouse, ev_const.MOUSE_BUTTON_RELEASE)
+      self.connect ('motion-notify-event', self.ca_ev_mouse, ev_const.MOUSE_MOTION)
+      self.connect ('enter-notify-event', self.ca_ev_mouse, ev_const.MOUSE_ENTER)
+      self.connect ('leave-notify-event', self.ca_ev_mouse, ev_const.MOUSE_LEAVE)
+            
+      # variables
+      self.ca_zoom = ui_config['cell_array_default_zoom']
+      self.ca_view_x = 0
+      self.ca_view_y = 0
+      self.ca_map = composants.Component (0, 0)
+      self.ca_editor = ui_editor.Editor (self)
+   
+   # center the view on the map
+   def ca_center (self):
+      x, y = self.ca_map.get_orig ()
+      w, h = self.ca_map.get_size ()
+      self.ca_view_x = x + w / 2
+      self.ca_view_y = y + h / 2
+      self.ca_draw ()
+      
+   # move the view
+   def ca_move (self, dx, dy):
+      self.ca_view_x = self.ca_view_x + dx
+      self.ca_view_y = self.ca_view_y + dy
+   
+   # compute an iteration
+   def ca_iter (self):
+      self.ca_map.iter_step ()
+      
+   # change cursor
+   def ca_set_cursor (self, cursor):
+      self.window.set_cursor (gtk.gdk.Cursor (cursor))
+      
+   # draw the map on the screen
+   def ca_draw (self):
+      # temp variables
+      screen_w, screen_h = self.ca_pixmap.get_size ()
+      map_x, map_y = self.ca_map.get_orig ()
+      map_w, map_h = self.ca_map.get_size ()
+      
+      # opt
+      center_x = screen_w / 2
+      center_y = screen_h / 2
+      orig_x = center_x + (map_x - self.ca_view_x) * self.ca_zoom
+      orig_y = center_y + (map_y - self.ca_view_y) * self.ca_zoom
+      zoom = self.ca_zoom
+      
+      # grid
+      if ui_config['cell_array_grid_enabled'] and self.ca_zoom >= ui_config['cell_array_grid_min_zoom']:
+         zoom = zoom - 1
+         orig_x = orig_x + 1
+         orig_y = orig_y + 1
+      
+      # determine visible range (index)
+      range_x_l = max (0, -center_x / self.ca_zoom + self.ca_view_x - map_x)
+      range_x_r = min (map_w, 1 + center_x / self.ca_zoom + self.ca_view_x - map_x)
+      range_y_l = max (0, -center_y / self.ca_zoom + self.ca_view_y - map_y)
+      range_y_r = min (map_h, 1 + center_y / self.ca_zoom + self.ca_view_y - map_y)
+            
+      # erase
+      self.ca_pixmap.draw_rectangle (self.ca_background_gc, True, 0, 0, screen_w,screen_h)
+      
+      # print the map
+      for x in range (range_x_l, range_x_r):
+         for y in range (range_y_l, range_y_r):
+            if self.ca_map.get_state(x, y) != sim_const.EMPTY or ui_config['cell_array_map_show']:
+               self.ca_pixmap.draw_rectangle (self.ca_gc[self.ca_map.get_state(x, y)], True,
+                  orig_x + x * self.ca_zoom,
+                  orig_y + y * self.ca_zoom,
+                  zoom,
+                  zoom)
+               
+      # editor highlighted
+      for x, y in self.ca_editor.get_highlighted ():
+         self.ca_pixmap.draw_rectangle (self.ca_highlight_gc, True,
+            center_x + (x - self.ca_view_x) * self.ca_zoom,
+            center_y + (y - self.ca_view_y) * self.ca_zoom,
+            self.ca_zoom,
+            self.ca_zoom)
+               
+      # print grid
+      if ui_config['cell_array_grid_enabled'] and self.ca_zoom >= ui_config['cell_array_grid_min_zoom']:
+         for x in range (center_x, screen_w, self.ca_zoom):
+            self.ca_pixmap.draw_line (self.ca_grid_gc, x, 0, x, screen_h)
+         for x in range (center_x, -1, -self.ca_zoom):
+            self.ca_pixmap.draw_line (self.ca_grid_gc, x, 0, x, screen_h)
+         for y in range (center_y, screen_h, self.ca_zoom):
+            self.ca_pixmap.draw_line (self.ca_grid_gc, 0, y, screen_w, y)
+         for y in range (center_y, -1, -self.ca_zoom):
+            self.ca_pixmap.draw_line (self.ca_grid_gc, 0, y, screen_w, y)
+
+      # draw changes
+      self.queue_draw ()
+      
+   # save to a file
+   def ca_save (self, filename, dest_map):
+      ret = True
+      if dest_map:
+         ca_map = self.ca_map
+      else:
+         ca_map = self.ca_editor.component_buffer
+         
+      # test if the map is empty
+      w, h = ca_map.get_size ()
+      if (w, h) != (0, 0):
+         # create buffers
+         pixbuf = gtk.gdk.Pixbuf (gtk.gdk.COLORSPACE_RGB, False, 8, w * self.ca_zoom, h * self.ca_zoom)
+         pixmap = gtk.gdk.Pixmap (self.window, w * self.ca_zoom, h * self.ca_zoom)
+         
+         # print the map
+         for x in range (w):
+            for y in range (h):
+               pixmap.draw_rectangle (self.ca_gc[ca_map.get_state(x, y)], True,
+               x * self.ca_zoom,
+               y * self.ca_zoom,
+               self.ca_zoom,
+               self.ca_zoom)
+         
+         # save image
+         pixbuf.get_from_drawable (pixmap, pixmap.get_colormap (), 0, 0, 0, 0, -1, -1)
+         try:
+            pixbuf.save (filename, 'png')
+         except glib.GError:
+            ret = False
+         del pixbuf
+         del pixmap
+      else:
+         ret = False
+      return ret
+
+   # load from file
+   def ca_load (self, filename, cell_size, dest_map):
+      ret = True
+      try:
+         img = Image.open (filename)
+      except IOError:
+         ret = False
+      if ret:
+         size = img.getbbox ()
+         if size != None:
+            xs, ys, xe, ye = size
+            w = (xe - xs) / cell_size
+            h = (ye - ys) / cell_size
+            if w > 0 and h > 0:
+               colors = [
+                  gtk.gdk.color_parse (ui_config['cell_array_color_empty']),
+                  gtk.gdk.color_parse (ui_config['cell_array_color_wire']),
+                  gtk.gdk.color_parse (ui_config['cell_array_color_head']),
+                  gtk.gdk.color_parse (ui_config['cell_array_color_tail'])
+                  ]
+               ca_map = composants.Component (w, h)
+               for x in range (w):
+                  for y in range (h):
+                     pix = img.getpixel ((xs + cell_size / 2 + x * cell_size, ys + cell_size / 2 + y * cell_size))
+                     if len (pix) == 4:
+                        r, g, b, _ = pix
+                     elif len (pix) == 3:
+                        r, g, b = pix
+                     else:
+                        return False
+                     diff = map (lambda c:abs (r - c.red / 256) + abs (g - c.green / 256) + abs (b - c.blue / 256), colors)
+                     i = diff.index (min (diff))
+                     ca_map.set_state (x, y, i)
+               if dest_map:
+                  self.ca_map = ca_map
+               else:
+                  self.ca_editor.component_buffer = ca_map
+               self.ca_center ()
+            else:
+               ret = False
+         else:
+            ret = False
+      return ret
+      
+
+
+
+============================================================
+ФАЙЛ: ui_dialog.py
+============================================================
+
+# -*- coding: utf-8 -*-
+
+import pygtk
+pygtk.require ('2.0')
+import gtk
+
+import ui_widget
+
+class Message_box ():
+   base_window = None
+   def spawn (self, icon, message, parent = None):
+      if parent == None:
+         parent = self.base_window
+      dialog = gtk.MessageDialog (parent, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+      icon, gtk.BUTTONS_OK, message)
+      dialog.run ()
+      dialog.destroy ()
+      
+msg_box = Message_box ()
+   
+def save_dialog (parent):
+   # create file chooser
+   dialog = gtk.FileChooserDialog ('Save map as PNG picture...', parent,
+   gtk.FILE_CHOOSER_ACTION_SAVE, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+   gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+   dialog.set_do_overwrite_confirmation (True)
+   
+   # run
+   answer = dialog.run ()
+   
+   # get filename
+   filename = dialog.get_filename ()
+   if answer == gtk.RESPONSE_ACCEPT and (len (filename) < 4 or filename[-4:] != '.png'):
+      filename = filename + '.png'
+      
+   # destroy dialog and return data
+   dialog.destroy ()
+   return (answer, filename)
+      
+def load_dialog (parent):
+   # create dialog
+   dialog = gtk.FileChooserDialog ('Load map from a PNG picture...', parent,
+   gtk.FILE_CHOOSER_ACTION_OPEN, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+   gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+   dialog.action_area.pack_start (gtk.Label ('Cell size in pixels :'))   
+   spinbutton = ui_widget.NumericSpinButton (1, 200)
+   dialog.action_area.pack_start (spinbutton)
+   dialog.action_area.show_all ()
+   
+   # run
+   answer = dialog.run ()
+   
+   # gather data
+   filename = dialog.get_filename ()
+   cell_size = spinbutton.get_value_as_int ()
+   
+   # destroy dialog and retrn choice
+   dialog.destroy ()
+   return (answer, filename, cell_size)
+   
+def frequency_dialog (parent):
+   # create dialog
+   dialog = gtk.Dialog ('Link frequency...', parent,
+   gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+   gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+   hbox = gtk.HBox ()
+   hbox.pack_start (gtk.Label ('Link frequency in iterations/signal :'))   
+   spinbutton = ui_widget.NumericSpinButton (1, 200)
+   hbox.pack_end (spinbutton)
+   dialog.vbox.pack_start (hbox)
+   dialog.vbox.show_all ()
+   
+   # run
+   answer = dialog.run ()
+   
+   # gather data
+   freq = spinbutton.get_value_as_int ()
+   
+   # destroy dialog and retrn choice
+   dialog.destroy ()
+   return (answer, freq)
+
+
+============================================================
+ФАЙЛ: ui_editor.py
+============================================================
+
+# -*- coding: utf-8 -*-
+
+################################
+# edit functions and callbacks #
+################################
+
+import pygtk
+pygtk.require ('2.0')
+import gtk
+
+import ui_dialog
+from config import *
+from composants import *
+from a_star import *
+
+def is_in_map (world, coord):
+   mx, my = world.get_orig ()
+   w, h = world.get_size ()
+   xo, yo = coord
+   return mx <= xo and xo < mx + w and my <= yo and yo < my + h
+   
+def is_valid_a_star (world, coord):
+   b = True
+   x, y = coord
+   xo, yo = world.get_orig ()
+   for i in [-1, 0, 1]:
+      for j in [-1, 0, 1]:
+         b = b and ((not is_in_map (world, (x + i, y + j))) or world.get_state (x - xo + i, y - yo + j) == sim_const.EMPTY)
+   return b and is_in_map (world, coord)
+
+# draw a line with bresenham algorithm
+def line ((xs, ys), (xe, ye)): # TODO optimiser en passant à e en entier
+   line_points = []
+   if xs == xe and ys == ye:
+      line_points = [(xs, ys)]
+   elif abs (xs - xe) > abs (ys - ye):
+      if xs > xe:
+         xs, xe = xe, xs
+         ys, ye = ye, ys
+      y = ys
+      e = 0.0
+      c = (float (ye) - float (ys)) / (float (xe) - float (xs))
+      if c > 0:
+         sig = 1
+      else:
+         sig = -1
+      c = abs (c)
+      for x in range (xs, xe + 1):
+         line_points.append ((x, y))
+         e = e + c
+         if e > 0.5:
+            y = y + sig
+            e = e - 1.
+   elif abs (ys - ye) >= abs (xs - xe):
+      if ys > ye:
+         xs, xe = xe, xs
+         ys, ye = ye, ys
+      x = xs
+      e = 0.0
+      c = (float (xe) - float (xs)) / (float (ye) - float (ys))
+      if c > 0:
+         sig = 1
+      else:
+         sig = -1
+      c = abs (c)
+      for y in range (ys, ye + 1):
+         line_points.append ((x, y))
+         e = e + c
+         if e > 0.5:
+            x = x + sig
+            e = e - 1.
+   return line_points
+
+class Editor (object):
+   def __init__ (self, cell_array):
+      # internal data
+      self.ca = cell_array
+      
+      # edit options
+      self.current_color = sim_const.EMPTY
+      self.current_mode = ui_const.TOOL_MOVE
+      
+      # edit var
+      self.highlighted = []
+      self.last_coord = None
+      self.component_buffer = Component (0, 0)
+      self.data = None
+   
+   # move by drag and drop
+   def move (self, dx, dy):
+      self.ca.ca_move (dx, dy)
+      self.ca.ca_draw ()
+      
+   # expand the map to include the given point
+   def include (self, x, y):
+      map_x, map_y = self.ca.ca_map.get_orig ()
+      map_w, map_h = self.ca.ca_map.get_size ()
+      if (map_w, map_h) == (0, 0):
+         self.ca.ca_map.set_orig (x, y)
+         self.ca.ca_map.resize (0, 0, 1, 1)
+      else:
+         self.ca.ca_map.resize (max (0, map_x - x), max (0, map_y - y), max (0, x - map_x - map_w + 1), max (0, y - map_y - map_h + 1))
+         
+   # autocrop : resize image by eliminate empty rows/cols
+   def autocrop (self):
+      # horizontal axis
+      mw, mh = self.ca.ca_map.get_size ()
+      # left
+      cl = 0
+      while cl < mw:
+         y = 0
+         while y < mh and self.ca.ca_map.get_state (cl, y) == sim_const.EMPTY:
+            y = y + 1
+         if y != mh:
+            break
+         cl = cl + 1
+      cr = 0
+      if cl == mw:
+         # if completely erased
+         cl = mw
+      else :
+         # right
+         while cr < mw - cl:
+            y = 0
+            while y < mh and self.ca.ca_map.get_state (mw - cr - 1, y) == sim_const.EMPTY:
+               y = y + 1
+            if y != mh:
+               break
+            cr = cr + 1
+      # resize
+      self.ca.ca_map.resize (-cl, 0, -cr, 0)
+      # vertical axis
+      mw, mh = self.ca.ca_map.get_size ()
+      # top
+      ct = 0
+      while ct < mh:
+         x = 0
+         while x < mw and self.ca.ca_map.get_state (x, ct) == sim_const.EMPTY:
+            x = x + 1
+         if x != mw:
+            break
+         ct = ct + 1
+      cb = 0
+      if ct == mh:
+         ct = mh
+      else :
+         # bottom
+         while cb < mh - ct:
+            x = 0
+            while x < mw and self.ca.ca_map.get_state (x, mh - cb - 1) == sim_const.EMPTY:
+               x = x + 1
+            if x != mw:
+               break
+            cb = cb + 1
+      # resize
+      self.ca.ca_map.resize (0, -ct, 0, -cb)
+         
+   # edit a cell, assuming its included in the map
+   def edit (self, x, y):
+      mx, my = self.ca.ca_map.get_orig ()
+      self.ca.ca_map.set_state (x - mx, y - my, self.current_color)
+         
+   # parameter changes due to ui
+   def set_current_color (self, color):
+      self.current_color = color
+      
+   def set_current_mode (self, mode):
+      self.current_mode = mode
+      self.reset_modes ()
+   
+   def reset_modes (self):
+      # clean shared vars
+      self.highlighted = []
+      self.last_coord = None
+      self.data = None
+      # reset cursor
+      if self.current_mode == ui_const.TOOL_MOVE:
+         self.ca.ca_set_cursor (gtk.gdk.HAND2)
+      else:
+         self.ca.ca_set_cursor (gtk.gdk.TCROSS)
+      
+   def toggle_edit (self):
+      self.current_mode = ui_const.TOOL_MOVE
+      self.reset_modes ()
+
+   def get_highlighted (self):
+      return self.highlighted
+   
+   # cell_array events, catch shared events
+   def do_event (self, event_type, coord):
+      if event_type == ev_const.MOUSE_LEAVE or event_type == ev_const.MOUSE_ENTER:
+         if self.current_mode != ui_const.TOOL_PATH:
+            self.reset_modes ()
+            if event_type == ev_const.MOUSE_LEAVE:
+               self.ca.ca_draw ()
+      elif self.current_mode == ui_const.TOOL_MOVE:
+         self.do_event_move (event_type, coord)
+      elif self.current_mode == ui_const.TOOL_PENCIL:
+         self.do_event_pencil (event_type, coord)
+      elif self.current_mode == ui_const.TOOL_ASTAR:
+         self.do_event_astar (event_type, coord)
+      elif self.current_mode == ui_const.TOOL_ERASER:
+         self.do_event_eraser (event_type, coord)
+      elif self.current_mode == ui_const.TOOL_COPY:
+         self.do_event_copy (event_type, coord)
+      elif self.current_mode == ui_const.TOOL_RESIZE:
+         self.do_event_resize (event_type, coord)
+      elif self.current_mode == ui_const.TOOL_PASTE:
+         self.do_event_paste (event_type, coord)
+      elif self.current_mode == ui_const.TOOL_PATH:
+         self.do_event_path (event_type, coord)
+         
+   # drag & drop
+   def do_event_move (self, event_type, coord):
+      if event_type == ev_const.MOUSE_BUTTON_PRESS:
+         # origin
+         self.last_coord = coord
+         self.ca.ca_set_cursor (gtk.gdk.HAND1)
+      elif event_type == ev_const.MOUSE_MOTION:
+         # if dynamic actions move then map whenever it's needed
+         if ui_config['editor_action_preview_enabled'] and self.last_coord != None and coord != self.last_coord:
+            nx, ny = coord
+            ox, oy = self.last_coord
+            self.move (ox - nx, oy - ny)
+      elif event_type == ev_const.MOUSE_BUTTON_RELEASE:
+         if self.last_coord != None:
+            # move the map if non dynamic, nothing to do if dynamic (already moved)
+            if not ui_config['editor_action_preview_enabled']:
+               nx, ny = coord
+               ox, oy = self.last_coord
+               self.move (ox - nx, oy - ny)
+         # reset mode variables
+         self.reset_modes ()
+   
+   # edit cells
+   def do_event_pencil (self, event_type, coord):
+      if event_type == ev_const.MOUSE_BUTTON_PRESS:
+         # origin
+         self.last_coord = [coord, coord]
+         self.highlighted = [coord]
+         self.ca.ca_draw ()
+      elif (event_type == ev_const.MOUSE_MOTION and ui_config['editor_action_preview_enabled'] and
+         # if dynamic draw the future line beetween cursor and origin
+         self.last_coord != None and coord != self.last_coord[1]):
+         self.highlighted = line (self.last_coord[0], coord)
+         self.last_coord[1] = coord
+         self.ca.ca_draw ()
+      elif event_type == ev_const.MOUSE_BUTTON_RELEASE:
+         if self.last_coord != None:
+            # draw the line on the map, and resize it if needed
+            self.include (*self.last_coord[0])
+            self.include (*coord)
+            for point in line (self.last_coord[0], coord):
+               self.edit (*point)
+         self.reset_modes ()
+         self.ca.ca_draw ()
+            
+   # erase cells
+   def do_event_eraser (self, event_type, coord):
+      if event_type == ev_const.MOUSE_BUTTON_PRESS:
+         # origin
+         self.last_coord = [coord, coord]
+         self.highlighted = [coord]
+         self.ca.ca_draw ()
+      elif (event_type == ev_const.MOUSE_MOTION and ui_config['editor_action_preview_enabled'] and
+         self.last_coord != None and coord != self.last_coord[1]):
+         # print a rectangle showing the selection
+         xs, ys = self.last_coord[0]
+         xe, ye = coord
+         self.highlighted = [(xs, ys), (xe, ys), (xs, ye), (xe, ye)]
+         for x in range (min (xs, xe) + 1, max (xs, xe)):
+            self.highlighted.append ((x, ys))
+            self.highlighted.append ((x, ye))
+         for y in range (min (ys, ye) + 1, max (ys, ye)):
+            self.highlighted.append ((xs, y))
+            self.highlighted.append ((xe, y))
+         self.last_coord[1] = coord
+         self.ca.ca_draw ()
+      elif event_type == ev_const.MOUSE_BUTTON_RELEASE:
+         if self.last_coord != None:
+            # erase the rectangle
+            xs, ys = self.last_coord[0]
+            xe, ye = coord
+            mx, my = self.ca.ca_map.get_orig ()
+            mw, mh = self.ca.ca_map.get_size ()
+            for x in range (max (min (xs, xe), mx), min (max (xs, xe) + 1, mx + mw)):
+               for y in range (max (min (ys, ye), my), min (max (ys, ye) + 1, my + mh)):
+                  self.ca.ca_map.set_state (x - mx, y - my, sim_const.EMPTY)
+         self.reset_modes ()
+         self.ca.ca_draw ()
+   
+   # A* path (without frequency)
+   def do_event_astar (self, event_type, coord):
+      if is_valid_a_star (self.ca.ca_map, coord):
+         xo, yo = self.ca.ca_map.get_orig ()
+         x, y = coord
+         try:
+            if event_type == ev_const.MOUSE_BUTTON_PRESS:
+               self.last_coord = coord
+               hl, self.data = dynamic_a_star (Point (x - xo, y - yo), Data (Point (x - xo, y - yo), self.ca.ca_map))
+               self.highlighted = map (lambda e:(xo + e.x, yo + e.y), hl)
+               self.ca.ca_draw ()
+            elif event_type == ev_const.MOUSE_MOTION:
+               if self.last_coord != None and coord != self.last_coord:
+                  self.last_coord = coord
+                  hl, self.data = dynamic_a_star (Point (x - xo, y - yo), self.data)
+                  self.highlighted = map (lambda e:(xo + e.x, yo + e.y), hl)
+                  self.ca.ca_draw ()
+            elif event_type == ev_const.MOUSE_BUTTON_RELEASE:
+               if self.last_coord != None:
+                  for i, j in self.highlighted:
+                     self.ca.ca_map.set_state (i - xo, j - yo, self.current_color)
+               self.reset_modes ()
+               self.ca.ca_draw ()
+         except Exception as text:
+            ui_dialog.msg_box.spawn (gtk.MESSAGE_ERROR, 'Unable to link these cells : %s' % text)
+            self.reset_modes ()
+            self.ca.ca_draw ()
+      else:
+         ui_dialog.msg_box.spawn (gtk.MESSAGE_ERROR, 'The cursor must stay in the map and must not touch non-empty cells')
+         self.reset_modes ()
+         self.ca.ca_draw ()
+         
+   # copy tool
+   def do_event_copy (self, event_type, coord):
+      if is_in_map (self.ca.ca_map, coord):
+         if event_type == ev_const.MOUSE_BUTTON_PRESS:
+            # origin
+            self.last_coord = [coord, coord]
+            self.highlighted = [coord]
+            self.ca.ca_draw ()
+         elif (event_type == ev_const.MOUSE_MOTION and ui_config['editor_action_preview_enabled'] and
+            self.last_coord != None and coord != self.last_coord[1]):
+            # print a rectangle showing the selection
+            xs, ys = self.last_coord[0]
+            xe, ye = coord
+            self.highlighted = [(xs, ys), (xe, ys), (xs, ye), (xe, ye)]
+            for x in range (min (xs, xe) + 1, max (xs, xe)):
+               self.highlighted.append ((x, ys))
+               self.highlighted.append ((x, ye))
+            for y in range (min (ys, ye) + 1, max (ys, ye)):
+               self.highlighted.append ((xs, y))
+               self.highlighted.append ((xe, y))
+            self.last_coord[1] = coord
+            self.ca.ca_draw ()
+         elif event_type == ev_const.MOUSE_BUTTON_RELEASE:
+            if self.last_coord != None:
+               # copy the rectangle
+               xs, ys = self.last_coord[0]
+               xe, ye = coord
+               mx, my = self.ca.ca_map.get_orig ()
+               self.component_buffer = self.ca.ca_map.copy_component (Point (xs - mx, ys - my),
+               Point (xe - mx + 1, ye - my + 1))
+            self.reset_modes ()
+            self.ca.ca_draw ()
+      else:
+         ui_dialog.msg_box.spawn (gtk.MESSAGE_ERROR, 'The cursor must stay in the map')
+         self.reset_modes ()
+         self.ca.ca_draw ()
+         
+   # resize tool
+   def do_event_resize (self, event_type, coord):
+      if event_type == ev_const.MOUSE_BUTTON_PRESS:
+         # origin
+         self.last_coord = [coord, coord]
+         self.highlighted = [coord]
+         self.ca.ca_draw ()
+      elif (event_type == ev_const.MOUSE_MOTION and ui_config['editor_action_preview_enabled'] and
+         self.last_coord != None and coord != self.last_coord[1]):
+         # print a rectangle showing the selection
+         xs, ys = self.last_coord[0]
+         xe, ye = coord
+         self.highlighted = [(xs, ys), (xe, ys), (xs, ye), (xe, ye)]
+         for x in range (min (xs, xe) + 1, max (xs, xe)):
+            self.highlighted.append ((x, ys))
+            self.highlighted.append ((x, ye))
+         for y in range (min (ys, ye) + 1, max (ys, ye)):
+            self.highlighted.append ((xs, y))
+            self.highlighted.append ((xe, y))
+         self.last_coord[1] = coord
+         self.ca.ca_draw ()
+      elif event_type == ev_const.MOUSE_BUTTON_RELEASE:
+         if self.last_coord != None:
+            # copy the rectangle
+            xs, ys = self.last_coord[0]
+            xe, ye = coord
+            l = min (xs, xe)
+            t = min (ys, ye)
+            r = max (xs, xe)
+            b = max (ys, ye)
+            mx, my = self.ca.ca_map.get_orig ()
+            mw, mh = self.ca.ca_map.get_size ()
+            self.ca.ca_map.resize (mx - l, my - t, r - mx - mw + 1, b - my - mh + 1)
+         self.reset_modes ()
+         self.ca.ca_draw ()
+
+   # paste tool
+   def do_event_paste (self, event_type, coord):
+      if event_type == ev_const.MOUSE_BUTTON_PRESS:
+         # origin
+         self.last_coord = [coord, coord]
+         self.highlighted = [coord]
+         self.ca.ca_draw ()
+      elif (event_type == ev_const.MOUSE_MOTION and ui_config['editor_action_preview_enabled'] and
+         self.last_coord != None and coord != self.last_coord[1]):
+         # print origin if cursor is above it
+         if self.last_coord[0] == self.last_coord[1]:
+            self.highlighted = [self.last_coord[0]]
+         else:
+            self.highlighted = []
+         self.last_coord[1] = coord
+         self.ca.ca_draw ()
+      elif event_type == ev_const.MOUSE_BUTTON_RELEASE:
+         if self.last_coord != None and self.last_coord[0] == coord:
+            # copy the rectangle
+            xs, ys = self.last_coord[0]
+            mw, mh = self.component_buffer.get_size ()
+            self.include (xs, ys)
+            self.include (xs + mw - 1, ys + mh - 1)
+            mx, my = self.ca.ca_map.get_orig ()
+            self.ca.ca_map.put_component (xs - mx, ys - my, self.component_buffer)
+         self.reset_modes ()
+         self.ca.ca_draw ()
+         
+   # A* path, with frequency
+   def do_event_path (self, event_type, coord):
+      if is_valid_a_star (self.ca.ca_map, coord) or (event_type == ev_const.MOUSE_MOTION and
+      is_in_map (self.ca.ca_map, coord)):
+         try:
+            if event_type == ev_const.MOUSE_BUTTON_PRESS:
+               self.last_coord = [coord, coord]
+               self.highlighted = [coord]
+               self.ca.ca_draw ()
+            elif event_type == ev_const.MOUSE_MOTION:
+               if self.last_coord != None and coord != self.last_coord[1] and ui_config['editor_action_preview_enabled']:
+                  self.last_coord[1] = coord
+                  self.highlighted = self.last_coord
+                  self.ca.ca_draw ()
+            elif event_type == ev_const.MOUSE_BUTTON_RELEASE:
+               if self.last_coord != None:
+                  mx, my = self.ca.ca_map.get_orig ()
+                  xs, ys = self.last_coord[0]
+                  xe, ye = coord
+                  answer, freq = ui_dialog.frequency_dialog (None)
+                  if answer == gtk.RESPONSE_ACCEPT:
+                     self.ca.ca_map.add_connection (Connection (freq, xs - mx, ys - my))
+                     self.ca.ca_map.add_connection (Connection (freq, xe - mx, ye - my))
+                     self.ca.ca_map.link_connections_low (0, 1)
+               self.reset_modes ()
+               self.ca.ca_draw ()
+         except Exception as text:
+            ui_dialog.msg_box.spawn (gtk.MESSAGE_ERROR, 'Unable to link these cells : %s' % text)
+            self.reset_modes ()
+            self.ca.ca_draw ()
+      else:
+         ui_dialog.msg_box.spawn (gtk.MESSAGE_ERROR, 'The cursor must stay in the map and must not touch non-empty cells')
+         self.reset_modes ()
+         self.ca.ca_draw ()
+   
+
+
+============================================================
+ФАЙЛ: ui_main_window.py
+============================================================
+
+# -*- coding: utf-8 -*-
+
+####################################
+# main window interface with pygtk #
+####################################
+
+# includes
+import pygtk
+pygtk.require('2.0')
+import gtk
+import glib
+
+from config import *
+import ui_cell_array
+import ui_dialog
+import ui_widget
+import composants
+
+# utils
+def gtk_widget_show_list (widgets):
+   for w in widgets:
+      w.show ()
+      
+def gtk_widget_hide_list (widgets):
+   for w in widgets:
+      w.hide ()
+
+def gtk_widget_enable_list (widgets, state):
+   for w in widgets:
+      w.set_sensitive (state)
+
+# main window class
+class Main_window (object):
+   #### signals ####
+   # quit signal
+   def ev_window_delete_event (self, widget, event, data = None):
+      return False
+   
+   # menu quit signal
+   def ev_menu_quit (self, item, data = None):
+      self.window.destroy ()
+   
+   # end of gtk loop
+   def ev_window_destroy (self, widget, data = None):
+      gtk.main_quit ()
+      
+   # menu save event
+   def ev_menu_save (self, item, data):
+      # run a filechooser dialog
+      answer, filename = ui_dialog.save_dialog (self.window)
+            
+      # display information to user
+      if answer == gtk.RESPONSE_ACCEPT:
+         if self.ca_cell_array.ca_save (filename, data):
+            ui_dialog.msg_box.spawn (gtk.MESSAGE_INFO, 'Map successfully saved in %s' % filename)
+         else:
+            ui_dialog.msg_box.spawn (gtk.MESSAGE_ERROR, 'Error while saving map in %s' % filename)
+
+   
+   # menu load event
+   def ev_menu_load (self, item, data):      
+      # run a filechooser dialog
+      answer, filename, cell_size = ui_dialog.load_dialog (self.window)
+         
+      if answer == gtk.RESPONSE_ACCEPT:
+         # load and display information to user
+         if self.ca_cell_array.ca_load (filename, cell_size, data):
+            ui_dialog.msg_box.spawn (gtk.MESSAGE_INFO, 'Map successfully loaded from %s' % filename)
+         else:
+            ui_dialog.msg_box.spawn (gtk.MESSAGE_ERROR, 'Error while loading map from %s' % filename)
+
+   # menu grid checkbox
+   def ev_menu_checkbox_grid (self, item, data = None):
+      ui_config['cell_array_grid_enabled'] = not ui_config['cell_array_grid_enabled']
+      self.ca_cell_array.ca_draw ()
+      
+   # menu map checkbox
+   def ev_menu_checkbox_map (self, item, data = None):
+      ui_config['cell_array_map_show'] = not ui_config['cell_array_map_show']
+      self.ca_cell_array.ca_draw ()
+      
+   # menu grid checkbox
+   def ev_menu_checkbox_selection (self, item, data = None):
+      ui_config['editor_action_preview_enabled'] = not ui_config['editor_action_preview_enabled']
+     
+   # toggle mode button
+   def ev_tb_toggle_clicked (self, widget, data = None):
+      # swap menu bar
+      self.v_mode = 1 - self.v_mode
+      if self.v_mode == ui_const.MODE_RUN:
+         gtk_widget_hide_list (self.v_edit_bar_widgets)
+         gtk_widget_show_list (self.v_run_bar_widgets)
+         self.tb_toggle.u_set_label ('Run _mode')
+         self.ca_cell_array.ca_editor.autocrop ()
+         self.ca_cell_array.ca_map = self.ca_cell_array.ca_map.turn_to_map ()
+      else:
+         gtk_widget_show_list (self.v_edit_bar_widgets)
+         gtk_widget_hide_list (self.v_run_bar_widgets)
+         self.tb_toggle.u_set_label ('Edit _mode')
+         self.ca_cell_array.ca_map = composants.create_from_map (self.ca_cell_array.ca_map)
+      # menu
+      gtk_widget_enable_list ([self.mbf_save, self.mbf_load, self.mbf_save_buf, self.mbf_load_buf],
+      self.v_mode == ui_const.MODE_EDIT)
+      # reset tool, and redraw
+      self.tbeb_tool_move.set_active (True)
+      self.ca_cell_array.ca_editor.toggle_edit ()
+      self.ca_cell_array.ca_draw ()
+   
+   # iterate n times
+   def ev_tbrb_iter_n_time_clicked (self, widget, data = None):
+      bound = self.tbrb_iter_num_w.get_value_as_int ()
+      # if only one iteration, doesn't freeze the ui
+      if bound > 1:
+         percent = 0
+         # disable ui and reset progress bar
+         self.w_vbox.set_sensitive (False)
+         self.tb_progress.u_set (0)
+         for i in range(bound):
+            self.ca_cell_array.ca_iter ()
+            # update progress bar
+            new_percent = (100 * i) / bound
+            if (new_percent > percent):
+               self.tb_progress.u_set (percent)
+               percent = new_percent
+            # let gtk running
+            gtk.main_iteration (False)
+         # restart ui, reset progress bar
+         self.w_vbox.set_sensitive (True)
+         self.tb_progress.u_clear ()
+
+      else:
+         self.ca_cell_array.ca_iter ()
+      self.ca_cell_array.ca_draw ()
+      
+   # iterate, with drawing
+   def ev_tbrb_toggle_play (self, widget, data = None):
+      self.v_is_running = not self.v_is_running
+      if self.v_is_running:
+         # change icon
+         widget.set_stock_id (gtk.STOCK_MEDIA_PAUSE)
+         # launch iterations
+         self.v_running_time = 0
+         self.v_running_id = glib.timeout_add (int (1000 / self.tbrb_play_speed_w.get_value ()), self.iteration_idle,
+            int (1000 / self.tbrb_play_speed_w.get_value ()), int (1000 / self.tbrb_draw_speed_w.get_value ()))
+      else:
+         # change icon
+         widget.set_stock_id (gtk.STOCK_MEDIA_PLAY)
+         # stop iterations
+         glib.source_remove (self.v_running_id)
+         # redraw to show the real state of the map
+         self.ca_cell_array.ca_draw ()
+      gtk_widget_enable_list (self.v_running_widgets, not self.v_is_running)
+   
+   # center
+   def ev_tb_center (self, button, data = None):
+      self.ca_cell_array.ca_center ()
+      
+   # crop
+   def ev_tb_crop (self, button, data = None):
+      self.ca_cell_array.ca_editor.autocrop ()
+      
+   # change current color
+   def ev_eb_color_change (self, button, color):
+      if button.get_active ():
+         self.ca_cell_array.ca_editor.set_current_color (color)
+         
+   # change current mode puppet
+   def ev_eb_mode_change (self, button, mode):
+      if button.get_active ():
+         self.ca_cell_array.ca_editor.set_current_mode (mode)
+      
+   #### init window ####
+   def __init__ (self):
+      # variables
+      self.v_mode = ui_const.MODE_EDIT
+      self.v_is_running = False
+      self.v_running_id = None
+      self.v_running_time = 0
+      self.v_edit_bar_widgets = []
+      self.v_run_bar_widgets = []
+      self.v_running_widgets = []
+      
+      # create the main window, and main vbox
+      self.window = gtk.Window ()
+      self.window.set_title ('Simulateur wireworld')
+      self.window.set_default_size (ui_config['main_window_default_width'], ui_config['main_window_default_height'])
+      self.w_vbox = gtk.VBox ()
+      self.window.add (self.w_vbox)
+      self.window.connect ('delete_event', self.ev_window_delete_event)
+      self.window.connect ('destroy', self.ev_window_destroy)
+      
+      self.window.get_settings ().set_long_property ('gtk-toolbar-icon-size', gtk.ICON_SIZE_SMALL_TOOLBAR, '')
+      
+      # menu bar
+      self.m_bar = gtk.MenuBar ()
+      self.w_vbox.pack_start (self.m_bar, False, False, 0)
+      
+      # file
+      self.mb_file = gtk.MenuItem ('_File')
+      self.m_bar.append (self.mb_file)
+      
+      self.mbf_menu = gtk.Menu ()
+      self.mb_file.set_submenu (self.mbf_menu)
+      
+      self.mbf_save = gtk.MenuItem ('_Save...')
+      self.mbf_menu.append (self.mbf_save)
+      self.mbf_save.connect ('activate', self.ev_menu_save, True)
+      
+      self.mbf_load = gtk.MenuItem ('_Open...')
+      self.mbf_menu.append (self.mbf_load)
+      self.mbf_load.connect ('activate', self.ev_menu_load, True)
+      
+      self.mbf_separator1 = gtk.SeparatorMenuItem ()
+      self.mbf_menu.append (self.mbf_separator1)
+      
+      self.mbf_save_buf = gtk.MenuItem ('_Export buffer...')
+      self.mbf_menu.append (self.mbf_save_buf)
+      self.mbf_save_buf.connect ('activate', self.ev_menu_save, False)
+      
+      self.mbf_load_buf = gtk.MenuItem ('_Import buffer...')
+      self.mbf_menu.append (self.mbf_load_buf)
+      self.mbf_load_buf.connect ('activate', self.ev_menu_load, False)
+      
+      self.mbf_separator2 = gtk.SeparatorMenuItem ()
+      self.mbf_menu.append (self.mbf_separator2)
+      
+      self.mbf_quit = gtk.MenuItem ('_Quit')
+      self.mbf_menu.append (self.mbf_quit)
+      self.mbf_quit.connect ('activate', self.ev_menu_quit)
+      
+      # settings
+      self.mb_settings = gtk.MenuItem ('_Settings')
+      self.m_bar.append (self.mb_settings)
+      
+      self.mbs_menu = gtk.Menu ()
+      self.mb_settings.set_submenu (self.mbs_menu)
+      
+      self.mbs_grid_enable = gtk.CheckMenuItem ('_Grid')
+      self.mbs_grid_enable.set_active (ui_config['cell_array_grid_enabled'])
+      self.mbs_menu.append (self.mbs_grid_enable)
+      self.mbs_grid_enable.connect ('toggled', self.ev_menu_checkbox_grid)
+      
+      self.mbs_selection_enable = gtk.CheckMenuItem ('_Action preview')
+      self.mbs_selection_enable.set_active (ui_config['editor_action_preview_enabled'])
+      self.mbs_menu.append (self.mbs_selection_enable)
+      self.mbs_selection_enable.connect ('toggled', self.ev_menu_checkbox_selection)
+      
+      self.mbs_map_enable = gtk.CheckMenuItem ('_Show internal map')
+      self.mbs_map_enable.set_active (ui_config['cell_array_map_show'])
+      self.mbs_menu.append (self.mbs_map_enable)
+      self.mbs_map_enable.connect ('toggled', self.ev_menu_checkbox_map)
+
+      # button bar
+      self.t_bar = gtk.Toolbar ()
+      self.t_bar.set_style (gtk.TOOLBAR_ICONS)
+      self.w_vbox.pack_start (self.t_bar, False, False, 0)
+      
+      self.tb_toggle = ui_widget.BoundToolButtonText (self.t_bar)
+      self.tb_toggle.set_tooltip_text ('Toggle beetween edit and run mode')
+      self.v_running_widgets.append (self.tb_toggle)
+      self.tb_toggle.connect ('clicked', self.ev_tb_toggle_clicked)
+      
+      self.tb_separator1 = ui_widget.BoundSeparatorToolItem (self.t_bar)
+      
+      # edit bar
+      self.tbeb_color_empty = ui_widget.BoundRadioToolButton (None, 'cell_array_color_empty', self.t_bar)
+      self.tbeb_color_empty.set_tooltip_text ('Empty state')
+      self.v_edit_bar_widgets.append (self.tbeb_color_empty)
+      self.tbeb_color_empty.connect ('toggled', self.ev_eb_color_change, sim_const.EMPTY)
+      
+      self.tbeb_color_wire = ui_widget.BoundRadioToolButton (self.tbeb_color_empty, 'cell_array_color_wire', self.t_bar)
+      self.tbeb_color_wire.set_tooltip_text ('Wire state')
+      self.v_edit_bar_widgets.append (self.tbeb_color_wire)
+      self.tbeb_color_wire.connect ('toggled', self.ev_eb_color_change, sim_const.WIRE)
+      
+      self.tbeb_color_head = ui_widget.BoundRadioToolButton (self.tbeb_color_empty, 'cell_array_color_head', self.t_bar)
+      self.tbeb_color_head.set_tooltip_text ('Electron head state')
+      self.v_edit_bar_widgets.append (self.tbeb_color_head)
+      self.tbeb_color_head.connect ('toggled', self.ev_eb_color_change, sim_const.HEAD)
+      
+      self.tbeb_color_tail = ui_widget.BoundRadioToolButton (self.tbeb_color_empty, 'cell_array_color_tail', self.t_bar)
+      self.tbeb_color_tail.set_tooltip_text ('Electron tail state')
+      self.v_edit_bar_widgets.append (self.tbeb_color_tail)
+      self.tbeb_color_tail.connect ('toggled', self.ev_eb_color_change, sim_const.TAIL)
+      
+      self.tbeb_separator = ui_widget.BoundSeparatorToolItem (self.t_bar)
+      self.v_edit_bar_widgets.append (self.tbeb_separator)
+      
+      self.tbeb_tool_move = ui_widget.BoundRadioToolButton (None, 'cell_array_tool_move', self.t_bar)
+      self.tbeb_tool_move.set_tooltip_text ('Move tool')
+      self.v_edit_bar_widgets.append (self.tbeb_tool_move)
+      self.tbeb_tool_move.connect ('toggled', self.ev_eb_mode_change, ui_const.TOOL_MOVE)
+      
+      self.tbeb_tool_pencil = ui_widget.BoundRadioToolButton (self.tbeb_tool_move, 'cell_array_tool_pencil', self.t_bar)
+      self.tbeb_tool_pencil.set_tooltip_text ('Pencil & line tool')
+      self.v_edit_bar_widgets.append (self.tbeb_tool_pencil)
+      self.tbeb_tool_pencil.connect ('toggled', self.ev_eb_mode_change, ui_const.TOOL_PENCIL)
+      
+      self.tbeb_tool_astar = ui_widget.BoundRadioToolButton (self.tbeb_tool_move, 'cell_array_tool_astar', self.t_bar)
+      self.tbeb_tool_astar.set_tooltip_text ('A* path tool (without frequency)')
+      self.v_edit_bar_widgets.append (self.tbeb_tool_astar)
+      self.tbeb_tool_astar.connect ('toggled', self.ev_eb_mode_change, ui_const.TOOL_ASTAR)
+      
+      self.tbeb_tool_eraser = ui_widget.BoundRadioToolButton (self.tbeb_tool_move, 'cell_array_tool_eraser', self.t_bar)
+      self.tbeb_tool_eraser.set_tooltip_text ('Eraser tool')
+      self.v_edit_bar_widgets.append (self.tbeb_tool_eraser)
+      self.tbeb_tool_eraser.connect ('toggled', self.ev_eb_mode_change, ui_const.TOOL_ERASER)
+      
+      self.tbeb_tool_copy = ui_widget.BoundRadioToolButton (self.tbeb_tool_move, 'cell_array_tool_copy', self.t_bar)
+      self.tbeb_tool_copy.set_tooltip_text ('Copy selection to buffer')
+      self.v_edit_bar_widgets.append (self.tbeb_tool_copy)
+      self.tbeb_tool_copy.connect ('toggled', self.ev_eb_mode_change, ui_const.TOOL_COPY)
+      
+      self.tbeb_tool_paste = ui_widget.BoundRadioToolButton (self.tbeb_tool_move, 'cell_array_tool_paste', self.t_bar)
+      self.tbeb_tool_paste.set_tooltip_text ('Paste buffer content')
+      self.v_edit_bar_widgets.append (self.tbeb_tool_paste)
+      self.tbeb_tool_paste.connect ('toggled', self.ev_eb_mode_change, ui_const.TOOL_PASTE)
+      
+      self.tbeb_tool_resize = ui_widget.BoundRadioToolButton (self.tbeb_tool_move, 'cell_array_tool_resize', self.t_bar)
+      self.tbeb_tool_resize.set_tooltip_text ('Resize internal map to the selection rectangle')
+      self.v_edit_bar_widgets.append (self.tbeb_tool_resize)
+      self.tbeb_tool_resize.connect ('toggled', self.ev_eb_mode_change, ui_const.TOOL_RESIZE)
+      
+      self.tbeb_tool_path = ui_widget.BoundRadioToolButton (self.tbeb_tool_move, 'cell_array_tool_path', self.t_bar)
+      self.tbeb_tool_path.set_tooltip_text ('Link two cells with the same phase (for a given frequency)')
+      self.v_edit_bar_widgets.append (self.tbeb_tool_path)
+      self.tbeb_tool_path.connect ('toggled', self.ev_eb_mode_change, ui_const.TOOL_PATH)
+      
+      self.tbeb_separator2 = ui_widget.BoundSeparatorToolItem (self.t_bar)
+      self.v_edit_bar_widgets.append (self.tbeb_separator2)
+      
+      self.tbeb_center = ui_widget.BoundToolButtonStock ('cell_array_action_center', self.t_bar)
+      self.tbeb_center.set_tooltip_text ('Center view on the map')
+      self.v_edit_bar_widgets.append (self.tbeb_center)
+      self.tbeb_center.connect ('clicked', self.ev_tb_center)
+      
+      self.tbeb_crop = ui_widget.BoundToolButtonStock ('cell_array_action_crop', self.t_bar)
+      self.tbeb_crop.set_tooltip_text ('Eliminate empty parts of the map')
+      self.v_edit_bar_widgets.append (self.tbeb_crop)
+      self.tbeb_crop.connect ('clicked', self.ev_tb_crop)
+      
+      # run bar
+      self.tbrb_toggle_play = ui_widget.BoundToolButtonStock (gtk.STOCK_MEDIA_PLAY, self.t_bar)
+      self.tbrb_toggle_play.set_tooltip_text ('Toggle beetween play / pause')
+      self.v_run_bar_widgets.append (self.tbrb_toggle_play)
+      self.tbrb_toggle_play.connect ('clicked', self.ev_tbrb_toggle_play)
+      
+      self.tbrb_play_speed_w = ui_widget.NumericSpinButton (1, 300)
+      self.tbrb_play_speed_w.set_tooltip_text ('Maximum iterations per second')
+      self.tbrb_play_speed = ui_widget.BoundToolItem (self.tbrb_play_speed_w, self.t_bar)
+      self.v_run_bar_widgets.append (self.tbrb_play_speed)
+      self.v_running_widgets.append (self.tbrb_play_speed)
+      
+      self.tbrb_draw_speed_w = ui_widget.NumericSpinButton (1, 30)
+      self.tbrb_draw_speed_w.set_tooltip_text ('Maximum redrawings per second')
+      self.tbrb_draw_speed = ui_widget.BoundToolItem (self.tbrb_draw_speed_w, self.t_bar)
+      self.v_run_bar_widgets.append (self.tbrb_draw_speed)
+      self.v_running_widgets.append (self.tbrb_draw_speed)
+      
+      self.tbrb_separator = ui_widget.BoundSeparatorToolItem (self.t_bar)
+      self.v_run_bar_widgets.append (self.tbrb_separator)
+      
+      self.tbrb_iter_n_time = ui_widget.BoundToolButtonStock (gtk.STOCK_MEDIA_NEXT, self.t_bar)
+      self.tbrb_iter_n_time.set_tooltip_text ('Start an iteration sequence')
+      self.v_run_bar_widgets.append (self.tbrb_iter_n_time)
+      self.v_running_widgets.append (self.tbrb_iter_n_time)
+      self.tbrb_iter_n_time.connect ('clicked', self.ev_tbrb_iter_n_time_clicked)
+      
+      self.tbrb_iter_num_w = ui_widget.NumericSpinButton (1, 10000)
+      self.tbrb_iter_num_w.set_tooltip_text ('Number of iterations wanted')
+      self.tbrb_iter_num = ui_widget.BoundToolItem (self.tbrb_iter_num_w, self.t_bar)
+      self.v_run_bar_widgets.append (self.tbrb_iter_num)
+      self.v_running_widgets.append (self.tbrb_iter_num)
+      
+      ## shared progress bar
+      self.tb_separator2 = ui_widget.BoundSeparatorToolItem (self.t_bar)
+      
+      self.tb_progress = ui_widget.BoundProgressBarToolItem (self.t_bar)
+
+      self.v_running_widgets.append (self.tb_progress)
+      
+      # cell array
+      self.ca_table = gtk.Table (2, 3)
+      self.ca_table.set_border_width (4)
+      self.w_vbox.pack_start (self.ca_table, True, True, 0)
+      
+      self.ca_cell_array = ui_cell_array.Cell_array ()
+      self.ca_table.attach (self.ca_cell_array, 0, 1, 0, 1, gtk.EXPAND | gtk.FILL, gtk.EXPAND | gtk.FILL, 2, 2)
+      
+      self.ca_vscroll = gtk.VScrollbar ()
+      self.ca_vscroll.set_range (-1, 1)
+      self.ca_vscroll.set_value (0)
+      self.ca_vscroll.set_update_policy (gtk.UPDATE_DISCONTINUOUS)
+      self.ca_table.attach (self.ca_vscroll, 1, 2, 0, 1, gtk.FILL, gtk.FILL, 2, 2)
+      self.ca_vscroll.connect ('value-changed', self.ca_cell_array.ca_ev_scroll, True)
+      
+      self.ca_hscroll = gtk.HScrollbar ()
+      self.ca_hscroll.set_range (-1, 1)
+      self.ca_hscroll.set_value (0)
+      self.ca_hscroll.set_update_policy (gtk.UPDATE_DISCONTINUOUS)
+      self.ca_table.attach (self.ca_hscroll, 0, 1, 1, 2, gtk.FILL, gtk.FILL, 2, 2)
+      self.ca_hscroll.connect ('value-changed', self.ca_cell_array.ca_ev_scroll, False)
+      
+      self.ca_scale = gtk.VScale ()
+      self.ca_scale.set_range (1, ui_config['cell_array_max_zoom'] * ui_config['cell_array_max_zoom'])
+      self.ca_scale.set_value (ui_config['cell_array_default_zoom'] * ui_config['cell_array_default_zoom'])
+      self.ca_scale.set_update_policy (gtk.UPDATE_DISCONTINUOUS)
+      self.ca_scale.set_draw_value (False)
+      self.ca_scale.set_inverted (True)
+      self.ca_scale.set_tooltip_text ('Set zoom')
+      self.ca_table.attach (self.ca_scale, 2, 3, 0, 2, gtk.FILL, gtk.FILL, 2, 2)
+      self.ca_scale.connect ('value-changed', self.ca_cell_array.ca_ev_zoom)
+
+      # show all widgets
+      self.window.show_all ()
+      
+      ui_dialog.msg_box.base_window = self.window
+      
+      # bar settings
+      gtk_widget_hide_list (self.v_run_bar_widgets)
+      self.tb_toggle.u_set_label ('Edit _mode')
+
+      self.tbeb_tool_move.set_active (True)
+      self.tbeb_color_empty.set_active (True)
+      self.ca_cell_array.ca_set_cursor (gtk.gdk.HAND2)
+
+   # main loop
+   def main (self):
+      # main loop
+      gtk.main ()
+      
+   # iteration idle function
+   def iteration_idle (self, iter_interval, draw_interval):
+      # iterate
+      self.ca_cell_array.ca_iter ()
+      # compute the time elapsed since the last draw
+      self.v_running_time = self.v_running_time + iter_interval
+      # draw if time greater than max refresh interval
+      if (self.v_running_time >= draw_interval):
+         self.v_running_time = 0
+         self.ca_cell_array.ca_draw ()
+      return True
+
+
+
+============================================================
+ФАЙЛ: ui_widget.py
+============================================================
+
+# -*- coding: utf-8 -*-
+
+import pygtk
+pygtk.require ('2.0')
+import gtk
+
+class NumericSpinButton (gtk.SpinButton):
+   def __init__ (self, a, b):
+      gtk.SpinButton.__init__ (self)
+      self.set_increments (1, 10)
+      self.set_range (a, b)
+      self.set_numeric (True)
+      self.set_snap_to_ticks (True)
+
+class BoundToolItem (gtk.ToolItem):
+   def __init__ (self, child, toolbar):
+      gtk.ToolItem.__init__ (self)
+      self.set_homogeneous (False)
+      self.add (child)
+      toolbar.insert (self, -1)
+      
+class BoundToolButtonStock (gtk.ToolButton):
+   def __init__ (self, stock, toolbar):
+      gtk.ToolButton.__init__ (self, stock)
+      self.set_homogeneous (False)
+      toolbar.insert (self, -1)
+      
+class BoundToolButtonText (gtk.ToolButton):
+   def __init__ (self, toolbar):
+      gtk.ToolButton.__init__ (self, None, '')
+      self.set_homogeneous (False)
+      self.set_icon_widget (gtk.Label (''))
+      self.get_icon_widget ().set_use_underline (True)
+      toolbar.insert (self, -1)
+   
+   def u_set_label (self, text):
+      self.get_icon_widget ().set_label (text)
+      
+class BoundRadioToolButton (gtk.RadioToolButton):
+   def __init__ (self, group, stock, toolbar):
+      gtk.RadioToolButton.__init__ (self, group, stock)
+      self.set_homogeneous (False)
+      toolbar.insert (self, -1)
+      
+class BoundSeparatorToolItem (gtk.SeparatorToolItem):
+   def __init__ (self, toolbar):
+      gtk.SeparatorToolItem.__init__ (self)
+      self.set_homogeneous (False)
+      toolbar.insert (self, -1)
+      
+class BoundProgressBarToolItem (BoundToolItem):
+   def __init__ (self, toolbar):
+      BoundToolItem.__init__ (self, gtk.ProgressBar (), toolbar)
+      self.set_expand (True)
+      
+   def u_clear (self):
+      self.get_child ().set_fraction (0)
+      self.get_child ().set_text ('')
+      
+   def u_set (self, percent):
+      self.get_child ().set_fraction (percent / 100.)
+      self.get_child ().set_text (str (percent) + ' %')
+

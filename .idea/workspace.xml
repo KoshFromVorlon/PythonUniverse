@@ -4,24 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a0edc7ac-0327-4700-92ac-0b1c66c2faee" name="Changes" comment="simple cubic lattice 3-7 commit">
-      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/DigitalUniverse.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/digital_phys.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dragons_curve.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/emergent_gravity.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/emergent_gravity_3d.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/emergent_gravity_3d_improve.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/kochs_snowflake.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/life.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/notes.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pantagruel.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rule110.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tree.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/universe.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/PythonUniverse.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PythonUniverse.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="a0edc7ac-0327-4700-92ac-0b1c66c2faee" name="Changes" comment="pantagruel added">
+      <change afterPath="$PROJECT_DIR$/big_bang.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/first_particle.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gaspers_gun_improve.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gospers_gun.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gospers_gun_with_eater.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/quad_core_pr3.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/quad_core_pulse_reactor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/quad_core_pulse_reactor_2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/simulateur/collector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/two_gaspers_guns.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wireworld_modern.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notes.md" beforeDir="false" afterPath="$PROJECT_DIR$/notes.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pantagruel.py" beforeDir="false" afterPath="$PROJECT_DIR$/pantagruel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,12 +68,21 @@
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python.Kochs_snowflake.executor": "Run",
+    "Python.big_bang (1).executor": "Run",
+    "Python.collector.executor": "Run",
     "Python.dragons_curve.executor": "Run",
     "Python.emergent_gravity.executor": "Run",
     "Python.emergent_gravity_3d.executor": "Run",
     "Python.emergent_gravity_3d_improve.executor": "Run",
+    "Python.gaspers_gun_improve.executor": "Run",
+    "Python.gospers_gun.executor": "Run",
+    "Python.gospers_gun_with_eater.executor": "Run",
     "Python.life.executor": "Run",
+    "Python.main.executor": "Run",
     "Python.pantagruel.executor": "Run",
+    "Python.quad_core_pr3.executor": "Run",
+    "Python.quad_core_pulse_reactor.executor": "Run",
+    "Python.quad_core_pulse_reactor_2.executor": "Run",
     "Python.rule110.executor": "Run",
     "Python.simple_cubic_lattice.executor": "Run",
     "Python.simple_cubic_lattice2.executor": "Run",
@@ -85,7 +92,10 @@
     "Python.simple_cubic_lattice6.executor": "Run",
     "Python.simple_cubic_lattice7.executor": "Run",
     "Python.tree.executor": "Run",
+    "Python.true_pantagruel.executor": "Run",
+    "Python.two_gaspers_guns.executor": "Run",
     "Python.universe.executor": "Run",
+    "Python.wireworld_modern.executor": "Run",
     "Python.word.executor": "Run",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -102,8 +112,8 @@
       <recent name="C:\Users\tonko\PycharmProjects\DigitalUniverse" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.pantagruel">
-    <configuration name="dragons_curve" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.wireworld_modern">
+    <configuration name="collector" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -112,12 +122,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/simulateur" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dragons_curve.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simulateur/collector.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -126,7 +136,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="emergent_gravity" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -135,12 +145,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/simulateur" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emergent_gravity.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/simulateur/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -149,7 +159,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="emergent_gravity_3d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="quad_core_pr3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -163,7 +173,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emergent_gravity_3d.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/quad_core_pr3.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -172,7 +182,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="emergent_gravity_3d_improve" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="quad_core_pulse_reactor_2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -186,7 +196,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emergent_gravity_3d_improve.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/quad_core_pulse_reactor_2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -195,7 +205,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="pantagruel" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="wireworld_modern" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonUniverse" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -209,7 +219,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pantagruel.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/wireworld_modern.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -220,11 +230,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.pantagruel" />
-        <item itemvalue="Python.emergent_gravity_3d_improve" />
-        <item itemvalue="Python.emergent_gravity_3d" />
-        <item itemvalue="Python.emergent_gravity" />
-        <item itemvalue="Python.dragons_curve" />
+        <item itemvalue="Python.wireworld_modern" />
+        <item itemvalue="Python.collector" />
+        <item itemvalue="Python.main" />
+        <item itemvalue="Python.quad_core_pr3" />
+        <item itemvalue="Python.quad_core_pulse_reactor_2" />
       </list>
     </recent_temporary>
   </component>
@@ -267,13 +277,22 @@
       <option name="project" value="LOCAL" />
       <updated>1753218448610</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="pantagruel added">
+      <option name="closed" value="true" />
+      <created>1771584269641</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1771584269641</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="and there was light" />
     <MESSAGE value="simple cubic lattice commit" />
     <MESSAGE value="simple cubic lattice 3-7 commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="simple cubic lattice 3-7 commit" />
+    <MESSAGE value="pantagruel added" />
+    <option name="LAST_COMMIT_MESSAGE" value="pantagruel added" />
   </component>
 </project>
